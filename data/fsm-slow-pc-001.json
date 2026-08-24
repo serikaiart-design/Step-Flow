@@ -1,0 +1,201 @@
+{
+  "version": "1.0.0",
+  "case_template": "slow_pc_001",
+  "family": "slow_pc",
+  "purpose": "Deterministic finite-state machine for slow Windows PC and slow file-copy complaints.",
+  "invariants": [
+    "active_case_before_global_router",
+    "validated_input_only_changes_state",
+    "uncertain_never_changes_family",
+    "failed_step_is_not_repeated_automatically",
+    "hypothesis_is_not_diagnosis",
+    "destructive_action_requires_consent_state",
+    "uncertain_routes_to_current_state_explanation",
+    "new_symptom_does_not_erase_active_case",
+    "every_fix_requires_verify_state"
+  ],
+  "session_schema": {
+    "case_id": null,
+    "family": "slow_pc",
+    "state_id": "slow_scope",
+    "attempted_steps": [],
+    "failed_steps": [],
+    "evidence": {},
+    "pending_issue": null
+  },
+  "states": {
+    "slow_scope": {
+      "type": "question",
+      "question": "Что именно работает медленно?",
+      "expected_inputs": ["whole_pc", "windows_start", "single_app", "file_copy", "unknown"],
+      "labels": {
+        "whole_pc": "Весь компьютер",
+        "windows_start": "Запуск Windows",
+        "single_app": "Одна программа",
+        "file_copy": "Копирование файлов",
+        "unknown": "Не знаю"
+      },
+      "transitions": {
+        "whole_pc": "restart_safe",
+        "windows_start": "boot_performance_handoff",
+        "single_app": "app_name",
+        "file_copy": "copy_scope",
+        "unknown": "explain_slow_scope"
+      },
+      "risk_level": "none"
+    },
+    "explain_slow_scope": {
+      "type": "explain",
+      "text": "Выберите то, что больше похоже на вашу ситуацию: весь компьютер медленный; Windows долго запускается; тормозит одна программа; медленно копируются файлы.",
+      "next": "slow_scope",
+      "risk_level": "none"
+    },
+    "restart_safe": {
+      "type": "action",
+      "text": "Сохраните открытые документы и перезагрузите компьютер обычным способом. После входа в Windows пока не открывайте много программ.",
+      "expected_inputs": ["done", "cannot", "uncertain"],
+      "transitions": {"done": "slow_persists", "cannot": "restart_cannot", "uncertain": "explain_restart"},
+      "risk_level": "low"
+    },
+    "explain_restart": {
+      "type": "explain",
+      "text": "Нажмите Пуск → Питание → Перезагрузка. Не удерживайте кнопку питания, если Windows отвечает.",
+      "next": "restart_safe",
+      "risk_level": "none"
+    },
+    "restart_cannot": {
+      "type": "question",
+      "question": "Компьютер полностью завис и не реагирует на мышь и клавиатуру?",
+      "expected_inputs": ["yes", "no", "unknown"],
+      "transitions": {"yes": "hard_freeze_handoff", "no": "restart_safe", "unknown": "explain_restart_cannot"},
+      "risk_level": "none"
+    },
+    "explain_restart_cannot": {
+      "type": "explain",
+      "text": "Проверьте, двигается ли курсор и открывается ли Ctrl+Alt+Delete. Если да — Windows ещё отвечает.",
+      "next": "restart_cannot",
+      "risk_level": "none"
+    },
+    "slow_persists": {
+      "type": "question",
+      "question": "После перезагрузки компьютер всё ещё заметно тормозит?",
+      "expected_inputs": ["yes", "no", "unknown"],
+      "transitions": {"yes": "task_manager_open", "no": "resolved", "unknown": "explain_slow_persists"},
+      "risk_level": "none"
+    },
+    "explain_slow_persists": {
+      "type": "explain",
+      "text": "Попробуйте открыть Пуск и одну обычную программу. Если реакция всё ещё заметно медленная — выберите «Да».",
+      "next": "slow_persists",
+      "risk_level": "none"
+    },
+    "task_manager_open": {
+      "type": "action",
+      "text": "Нажмите Ctrl + Shift + Esc. Откройте вкладку «Процессы». Ничего не завершайте.",
+      "expected_inputs": ["done", "cannot", "uncertain"],
+      "transitions": {"done": "bottleneck", "cannot": "task_manager_help", "uncertain": "task_manager_help"},
+      "risk_level": "none"
+    },
+    "task_manager_help": {
+      "type": "explain",
+      "text": "Можно также нажать правой кнопкой по Пуск → Диспетчер задач. Если окно открылось, вернитесь к предыдущему шагу и выберите «Сделал».",
+      "next": "task_manager_open",
+      "risk_level": "none"
+    },
+    "bottleneck": {
+      "type": "question",
+      "question": "Какой столбец чаще всего показывает самую высокую нагрузку: ЦП, Память или Диск?",
+      "expected_inputs": ["cpu", "memory", "disk", "none", "unknown"],
+      "labels": {"cpu":"ЦП","memory":"Память","disk":"Диск","none":"Ничего сильно не загружено","unknown":"Не понимаю"},
+      "transitions": {"cpu":"cpu_top_process","memory":"memory_top_process","disk":"disk_context","none":"reliability_handoff","unknown":"explain_bottleneck"},
+      "risk_level": "none"
+    },
+    "explain_bottleneck": {
+      "type": "explain",
+      "text": "В Диспетчере задач сверху есть столбцы ЦП, Память и Диск. Скажите, где процент чаще всего самый высокий.",
+      "next": "bottleneck",
+      "risk_level": "none"
+    },
+    "cpu_top_process": {
+      "type": "handoff",
+      "text": "Назовите программу или процесс вверху столбца ЦП. Ничего не закрывайте самостоятельно.",
+      "expected_inputs": ["free_text"],
+      "next": "cpu_verify_scope",
+      "risk_level": "none"
+    },
+    "cpu_verify_scope": {
+      "type": "question",
+      "question": "Эта программа вам знакома и сейчас действительно должна работать?",
+      "expected_inputs": ["yes", "no", "unknown"],
+      "transitions": {"yes":"cpu_expected_load","no":"cpu_unknown_process_handoff","unknown":"cpu_unknown_process_handoff"},
+      "risk_level": "none"
+    },
+    "cpu_expected_load": {"type":"message","text":"Высокая загрузка ЦП может быть связана с этой программой. Закроем только саму программу обычным способом и проверим скорость.","next":"verify_speed_after_change","risk_level":"low"},
+    "cpu_unknown_process_handoff": {"type":"handoff","text":"Сохраните название процесса. Дальше потребуется идентифицировать его до любых действий.","next":"reliability_handoff","risk_level":"none"},
+    "memory_top_process": {"type":"handoff","text":"Назовите программу, которая использует больше всего памяти. Ничего не завершайте самостоятельно.","expected_inputs":["free_text"],"next":"memory_pressure_check","risk_level":"none"},
+    "memory_pressure_check": {"type":"question","question":"Столбец «Память» держится примерно выше 85–90%?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"memory_close_unused","no":"reliability_handoff","unknown":"explain_memory_percent"},"risk_level":"none"},
+    "explain_memory_percent": {"type":"explain","text":"Посмотрите процент в заголовке столбца «Память». Если он около 85–100%, выберите «Да».","next":"memory_pressure_check","risk_level":"none"},
+    "memory_close_unused": {"type":"action","text":"Закройте обычным способом только ненужные программы, которыми сейчас не пользуетесь. Системные процессы не трогайте.","expected_inputs":["done","cannot","uncertain"],"transitions":{"done":"verify_speed_after_change","cannot":"reliability_handoff","uncertain":"explain_memory_close"},"risk_level":"low"},
+    "explain_memory_close": {"type":"explain","text":"Закрывайте программы кнопкой X в их окне. Не используйте «Снять задачу» для незнакомых системных процессов.","next":"memory_close_unused","risk_level":"none"},
+    "disk_context": {
+      "type": "question",
+      "question": "Что именно медленно: весь компьютер или в основном копирование/открытие файлов?",
+      "expected_inputs": ["whole_pc", "file_copy", "unknown"],
+      "transitions": {"whole_pc":"disk_load_process","file_copy":"copy_scope","unknown":"explain_disk_context"},
+      "risk_level": "none"
+    },
+    "explain_disk_context": {"type":"explain","text":"Если медленно открываются меню и программы — выберите «весь компьютер». Если проблема заметна именно при копировании или открытии файлов — выберите «копирование/файлы».","next":"disk_context","risk_level":"none"},
+    "disk_load_process": {"type":"handoff","text":"Назовите процесс, который находится вверху по столбцу «Диск». Ничего не завершайте.","expected_inputs":["free_text"],"next":"free_space_check","risk_level":"none"},
+    "free_space_check": {"type":"question","question":"На системном диске C: осталось меньше примерно 15–20 ГБ свободного места?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"free_space_guidance","no":"reliability_handoff","unknown":"explain_free_space"},"risk_level":"none"},
+    "explain_free_space": {"type":"explain","text":"Откройте Проводник → Этот компьютер. Под диском C: показано свободное место.","next":"free_space_check","risk_level":"none"},
+    "free_space_guidance": {"type":"message","text":"Очень мало свободного места может замедлять Windows. Сначала освободим безопасные пользовательские файлы/Корзину, не трогая системные папки.","next":"verify_speed_after_change","risk_level":"low"},
+    "copy_scope": {
+      "type": "question",
+      "question": "Куда именно вы копируете файлы?",
+      "expected_inputs": ["internal_drive", "usb_external", "network", "cloud", "unknown"],
+      "labels": {"internal_drive":"Внутри компьютера","usb_external":"На флешку / внешний диск","network":"По сети / на другой компьютер","cloud":"В облако","unknown":"Не знаю"},
+      "transitions": {"internal_drive":"copy_internal_same_or_other","usb_external":"copy_usb_other_port","network":"copy_network_scope","cloud":"copy_cloud_scope","unknown":"explain_copy_scope"},
+      "risk_level": "none"
+    },
+    "explain_copy_scope": {"type":"explain","text":"Если вставлена флешка или внешний диск — выберите «На флешку / внешний диск». Если копируете между папками на этом компьютере — «Внутри компьютера». Если через Wi‑Fi/LAN — «По сети». OneDrive/Google Drive и похожие сервисы — «В облако».","next":"copy_scope","risk_level":"none"},
+    "copy_internal_same_or_other": {"type":"question","question":"Копируете между папками одного и того же диска или на другой внутренний диск?","expected_inputs":["same_drive","other_drive","unknown"],"transitions":{"same_drive":"copy_file_pattern","other_drive":"copy_file_pattern","unknown":"explain_internal_copy"},"risk_level":"none"},
+    "explain_internal_copy": {"type":"explain","text":"Если обе папки находятся, например, на диске C: — это один диск. Если C: → D: — другой диск.","next":"copy_internal_same_or_other","risk_level":"none"},
+    "copy_usb_other_port": {"type":"action","text":"Если можно, подключите флешку/внешний диск в другой USB‑порт и повторите копирование того же файла.","expected_inputs":["faster","same","cannot","unknown"],"transitions":{"faster":"copy_usb_port_bucket","same":"copy_file_pattern","cannot":"copy_file_pattern","unknown":"explain_usb_test"},"risk_level":"low"},
+    "explain_usb_test": {"type":"explain","text":"Нужно только переставить устройство в другой USB‑разъём и повторить копирование. Файлы удалять или форматировать не нужно.","next":"copy_usb_other_port","risk_level":"none"},
+    "copy_usb_port_bucket": {"type":"message","text":"Разница между USB‑портами — важный технический признак. Пока не делаем вывод о неисправности накопителя.","next":"verify_copy_speed","risk_level":"none"},
+    "copy_network_scope": {"type":"question","question":"Медленно только по сети, а копирование внутри компьютера нормальное?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"network_branch_handoff","no":"copy_file_pattern","unknown":"explain_network_scope"},"risk_level":"none"},
+    "explain_network_scope": {"type":"explain","text":"Сравните: обычный файл внутри компьютера копируется нормально? Если да, а по сети медленно — выберите «Да».","next":"copy_network_scope","risk_level":"none"},
+    "copy_cloud_scope": {"type":"question","question":"Обычное скачивание/загрузка в браузере тоже медленные?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"internet_speed_branch_handoff","no":"cloud_app_branch_handoff","unknown":"explain_cloud_scope"},"risk_level":"none"},
+    "explain_cloud_scope": {"type":"explain","text":"Попробуйте открыть обычный сайт или скачать небольшой файл. Это помогает отделить проблему интернета от конкретного облачного приложения.","next":"copy_cloud_scope","risk_level":"none"},
+    "copy_file_pattern": {"type":"question","question":"Медленно копируются все файлы или особенно папки с тысячами маленьких файлов?","expected_inputs":["all_files","many_small_files","unknown"],"transitions":{"all_files":"copy_size_test","many_small_files":"small_files_explain","unknown":"explain_file_pattern"},"risk_level":"none"},
+    "explain_file_pattern": {"type":"explain","text":"Один большой видеофайл и папка с тысячами маленьких файлов могут копироваться с очень разной скоростью. Выберите вариант, который ближе к вашей ситуации.","next":"copy_file_pattern","risk_level":"none"},
+    "small_files_explain": {"type":"message","text":"Тысячи маленьких файлов часто копируются значительно медленнее даже на исправном диске. Для проверки сравним с одним большим файлом.","next":"copy_size_test","risk_level":"none"},
+    "copy_size_test": {"type":"action","text":"Скопируйте один большой файл примерно 1–5 ГБ и запомните примерную скорость, которую показывает окно копирования.","expected_inputs":["free_text","cannot","uncertain"],"transitions":{"free_text":"copy_speed_interpret","cannot":"reliability_handoff","uncertain":"explain_copy_size_test"},"risk_level":"low"},
+    "explain_copy_size_test": {"type":"explain","text":"В окне копирования Windows обычно показывает скорость, например 25 МБ/с или 350 МБ/с. Нам нужна только примерная цифра.","next":"copy_size_test","risk_level":"none"},
+    "copy_speed_interpret": {"type":"handoff","text":"Сохраните примерную скорость и тип копирования. Только теперь можно решать, нужна ли проверка накопителя, USB, сети или это нормальное ограничение интерфейса.","next":"storage_evidence_gate","risk_level":"none"},
+    "storage_evidence_gate": {"type":"question","question":"Есть дополнительные признаки проблемы диска: ошибки файлов, зависания при открытии папок, пропадание диска или предупреждения Windows?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"smart_read_only","no":"verify_copy_speed","unknown":"explain_storage_evidence"},"risk_level":"none"},
+    "explain_storage_evidence": {"type":"explain","text":"Если диск просто копирует медленнее ожидаемого, но файлы открываются нормально и диск не пропадает — выберите «Нет».","next":"storage_evidence_gate","risk_level":"none"},
+    "smart_read_only": {"type":"action","text":"Проверим здоровье накопителя только на чтение через CrystalDiskInfo или официальную утилиту производителя. Ничего не исправляйте и не форматируйте.","expected_inputs":["done","cannot","uncertain"],"transitions":{"done":"smart_status","cannot":"vendor_or_service_handoff","uncertain":"explain_smart_open"},"risk_level":"low"},
+    "explain_smart_open": {"type":"explain","text":"Нужно только открыть программу и посмотреть поле «Техсостояние / Health Status». Никакие кнопки ремонта не нажимайте.","next":"smart_read_only","risk_level":"none"},
+    "smart_status": {"type":"question","question":"Какой статус здоровья показывает накопитель?","expected_inputs":["good","caution","bad","unknown"],"labels":{"good":"Хорошо / Good","caution":"Внимание / Caution","bad":"Плохо / Bad","unknown":"Не понимаю"},"transitions":{"good":"smart_good_continue","caution":"data_backup_gate","bad":"data_backup_gate","unknown":"explain_smart_status"},"risk_level":"none"},
+    "explain_smart_status": {"type":"explain","text":"Посмотрите в верхней части окна на поле «Техсостояние / Health Status». Обычно оно зелёное (Good), жёлтое (Caution) или красное (Bad). Если всё равно непонятно — можно показать скриншот.","next":"smart_status","risk_level":"none"},
+    "smart_good_continue": {"type":"message","text":"Статус Good — хороший признак, но не доказательство идеальной работы. Продолжим по скорости и другим фактам, не объявляя диск причиной.","next":"verify_copy_speed","risk_level":"none"},
+    "data_backup_gate": {"type":"action","text":"Сначала сохраните самые важные файлы на другой исправный носитель или в облако. Ремонтные команды пока не запускаем.","expected_inputs":["done","cannot","uncertain"],"transitions":{"done":"vendor_or_service_handoff","cannot":"escalate_data_risk","uncertain":"explain_backup_gate"},"risk_level":"medium"},
+    "explain_backup_gate": {"type":"explain","text":"Скопируйте в первую очередь документы и фотографии, которые больше нигде не сохранены. Не запускайте CHKDSK до резервной копии при подозрении на неисправный диск.","next":"data_backup_gate","risk_level":"none"},
+    "verify_speed_after_change": {"type":"verify","question":"После этого компьютер стал работать заметно быстрее?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"resolved","no":"reliability_handoff","unknown":"explain_verify_speed"},"risk_level":"none"},
+    "verify_copy_speed": {"type":"verify","question":"Проблема с копированием всё ещё мешает работе?","expected_inputs":["yes","no","unknown"],"transitions":{"yes":"reliability_handoff","no":"resolved","unknown":"explain_verify_copy"},"risk_level":"none"},
+    "explain_verify_speed": {"type":"explain","text":"Сравните с тем, как компьютер работал до шага. Если заметной разницы нет — выберите «Нет».","next":"verify_speed_after_change","risk_level":"none"},
+    "explain_verify_copy": {"type":"explain","text":"Если копирование теперь приемлемое — выберите «Нет». Если всё ещё явно слишком медленно — «Да».","next":"verify_copy_speed","risk_level":"none"},
+    "app_name": {"type":"handoff","text":"Напишите название программы, которая тормозит. Мы не будем менять Windows целиком, пока проблема только в одной программе.","expected_inputs":["free_text"],"next":"app_specific_handoff","risk_level":"none"},
+    "boot_performance_handoff": {"type":"handoff","text":"Это отдельная ветка производительности запуска Windows. Сохраняем текущий case и передаём в boot-performance FSM.","risk_level":"none"},
+    "app_specific_handoff": {"type":"handoff","text":"Передаём в отдельный FSM производительности конкретного приложения, сохраняя текущий case_id.","risk_level":"none"},
+    "network_branch_handoff": {"type":"handoff","text":"Передаём в сетевой FSM: медленное копирование подтверждено только по сети.","risk_level":"none"},
+    "internet_speed_branch_handoff": {"type":"handoff","text":"Передаём в сетевой FSM: медленны и облако, и обычный интернет-трафик.","risk_level":"none"},
+    "cloud_app_branch_handoff": {"type":"handoff","text":"Передаём в FSM конкретного облачного приложения: интернет в целом работает нормально.","risk_level":"none"},
+    "reliability_handoff": {"type":"handoff","text":"Следующий слой — встроенные события Windows/Reliability Monitor. Мы сохраняем текущие признаки и не начинаем диагностику заново.","risk_level":"none"},
+    "vendor_or_service_handoff": {"type":"handoff","text":"Нужна более глубокая диагностика производителя накопителя или специалиста. Не запускайте стресс-тест или ремонт диска автоматически.","risk_level":"medium"},
+    "hard_freeze_handoff": {"type":"handoff","text":"Полное зависание — отдельный case branch. Сохраняем текущую историю и переключаемся в freeze FSM.","risk_level":"medium"},
+    "escalate_data_risk": {"type":"escalate","text":"Есть риск для данных. Не выполняем ремонтные операции до безопасного копирования важных файлов.","risk_level":"high"},
+    "resolved": {"type":"resolved","text":"Проблема больше не мешает работе. Сохраняем успешный путь и не выполняем дополнительные действия.","risk_level":"none"}
+  }
+}
