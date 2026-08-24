@@ -1,0 +1,123 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-08-24",
+  "purpose": "Деревья решений Step & Flow. Определяют последовательность вопросов, проверок и действий. Один шаг за раз для пользователя без технических знаний.",
+  "engine_policy": {
+    "audience": "Новичок, который может не знать компьютерных терминов",
+    "one_step_at_a_time": true,
+    "default_buttons": ["Получилось", "Не получилось", "Не понимаю"],
+    "diagnose_before_repair": true,
+    "prefer_read_only": true,
+    "require_confirmation_before_changes": true,
+    "never_guess": true,
+    "after_every_repair": "Проверить, исчезла ли исходная проблема",
+    "stop_on_data_loss_risk": true,
+    "escalate_when": ["запах гари", "дым", "жидкость внутри устройства", "накопитель издает необычные механические звуки", "важные данные под угрозой", "повторяющийся аппаратный сбой без безопасной проверки"]
+  },
+  "flows": [
+    {
+      "id": "unexpected-restart",
+      "title": "Компьютер сам перезагружается или выключается",
+      "triggers": ["сам перезагружается", "сам выключается", "внезапно перезагрузился", "вылетает и перезапускается"],
+      "start": "q_bsod",
+      "nodes": {
+        "q_bsod": {"type":"question","text":"Перед перезагрузкой вы видели синий экран с грустным смайликом или надписью Stop code?","answers":{"Да":"goto:bsod-photo","Нет":"goto:q_load","Не знаю":"goto:reliability-open"}},
+        "q_load": {"type":"question","text":"Это обычно происходит во время игры, видео, тяжёлой программы или другой нагрузки?","answers":{"Да":"goto:heat-first","Нет":"goto:reliability-open","Не знаю":"goto:reliability-open"}},
+        "heat-first": {"type":"instruction","text":"Сейчас ничего разбирать не будем. Выключите тяжёлые программы и дайте компьютеру остыть 10 минут. Затем включите его и пока не запускайте игру.","risk":"low","next":"reliability-open"},
+        "reliability-open": {"type":"instruction","text":"Нажмите одновременно клавиши Win и R. Появится маленькое окно «Выполнить».","help":"Если не получилось, нажмите кнопку Пуск и напишите: монитор стабильности.","next":"reliability-command"},
+        "reliability-command": {"type":"instruction","text":"Впишите perfmon /rel и нажмите Enter.","tool_ref":"reliability-monitor","next":"reliability-red"},
+        "reliability-red": {"type":"question","text":"В день сбоя видите красный крестик?","answers":{"Да":"goto:reliability-detail","Нет":"goto:restart-no-log","Не понимаю":"goto:reliability-help"}},
+        "reliability-help": {"type":"instruction","text":"Посмотрите на график по дням. Красный круг с белым крестиком означает серьёзный сбой. Нажмите на день, когда компьютер перезагрузился.","next":"reliability-red"},
+        "reliability-detail": {"type":"instruction","text":"Нажмите событие с красным значком в нижней части окна. Если есть ссылка «Показать технические подробности», откройте её и сообщите помощнику название события и код — либо покажите скриншот.","next":"classify-crash"},
+        "classify-crash": {"type":"router","rules":[{"contains":["BlueScreen","BugCheck","синий экран"],"goto":"bsod-photo"},{"contains":["Windows не завершена должным образом","не завершена должным образом"],"goto":"unexpected-shutdown-explain"}],"fallback":"restart-no-log"},
+        "unexpected-shutdown-explain": {"type":"message","text":"Эта запись подтверждает неожиданное выключение, но сама по себе не показывает причину. Поэтому дальше проверим, был ли перегрев, питание или системный сбой.","next":"restart-no-log"},
+        "restart-no-log": {"type":"question","text":"Компьютер перед выключением был заметно горячим или вентиляторы сильно шумели?","answers":{"Да":"goto:temperature-check","Нет":"goto:system-repair-gate","Не знаю":"goto:temperature-check"}},
+        "temperature-check": {"type":"instruction","text":"Проверим температуру без изменения системы. Помощник предложит HWiNFO и покажет только нужные датчики CPU/GPU.","tool_ref":"hwinfo","risk":"low","next":"temperature-result"},
+        "temperature-result": {"type":"handoff","text":"Сообщите помощнику максимальные температуры CPU и GPU. Не нужно присылать весь список датчиков.","next":"system-repair-gate"},
+        "system-repair-gate": {"type":"question","text":"В Мониторе стабильности есть повторяющиеся ошибки Windows или системных компонентов?","answers":{"Да":"goto:dism-consent","Нет":"goto:hardware-escalation","Не знаю":"goto:hardware-escalation"}},
+        "dism-consent": {"type":"consent","text":"Следующая проверка уже может восстанавливать компоненты Windows и требует прав администратора. Личные файлы удаляться не должны. Запустить этот этап?","answers":{"Да":"goto:dism","Нет":"goto:hardware-escalation"}},
+        "dism": {"type":"instruction","text":"Откройте Терминал/Командную строку от имени администратора и выполните: DISM.exe /Online /Cleanup-Image /RestoreHealth. Не закрывайте окно до завершения.","tool_ref":"dism","risk":"medium","next":"sfc-consent"},
+        "sfc-consent": {"type":"consent","text":"DISM завершился. Теперь Windows может проверить защищённые системные файлы. Продолжить?","answers":{"Да":"goto:sfc","Нет":"goto:verify-restart"}},
+        "sfc": {"type":"instruction","text":"В том же окне выполните: sfc /scannow. Дождитесь 100%.","tool_ref":"sfc","risk":"medium","next":"verify-restart"},
+        "verify-restart": {"type":"verify","text":"Перезагрузите компьютер обычным способом и проверьте: проблема повторилась?","answers":{"Нет":"resolved","Да":"goto:hardware-escalation"}},
+        "hardware-escalation": {"type":"escalate","text":"Простые безопасные проверки не определили причину. Дальше помощник выберет отдельную ветку питания, RAM, накопителя или нагрузки — без запуска стресс-теста автоматически."}
+      }
+    },
+    {
+      "id": "bsod",
+      "title": "Синий экран Windows",
+      "triggers": ["синий экран", "bsod", "stop code", "bugcheck", "blue screen"],
+      "start": "bsod-photo",
+      "nodes": {
+        "bsod-photo": {"type":"instruction","text":"Если синий экран появится снова, сфотографируйте его на телефон. Нам особенно нужна строка Stop code. Ничего нажимать во время синего экрана не нужно.","next":"q_stopcode"},
+        "q_stopcode": {"type":"question","text":"У вас уже есть Stop code или фотография синего экрана?","answers":{"Да":"goto:collect-code","Нет":"goto:reliability-bsod"}},
+        "collect-code": {"type":"handoff","text":"Напишите Stop code точно как на экране или покажите фотографию. Помощник сопоставит код с нашей базой и не будет считать его единственным доказательством причины.","next":"dump-gate"},
+        "reliability-bsod": {"type":"instruction","text":"Нажмите Win + R, впишите perfmon /rel и нажмите Enter. Выберите день сбоя и красный крестик.","tool_ref":"reliability-monitor","next":"dump-gate"},
+        "dump-gate": {"type":"question","text":"Синий экран повторялся больше одного раза?","answers":{"Да":"goto:dump-analysis","Нет":"goto:basic-bsod-checks","Не знаю":"goto:basic-bsod-checks"}},
+        "dump-analysis": {"type":"instruction","text":"Если Windows сохранила минидампы, помощник сначала предложит простой анализ BlueScreenView или WhoCrashed. Найденный драйвер будет считаться подсказкой, а не доказанной причиной.","tool_refs":["bluescreenview","whocrashed"],"next":"dump-result"},
+        "dump-result": {"type":"handoff","text":"Сообщите помощнику Bug Check Code и имя файла/драйвера, которое повторяется в нескольких сбоях. Не нужно самостоятельно удалять этот файл.","next":"basic-bsod-checks"},
+        "basic-bsod-checks": {"type":"question","text":"Синий экран чаще появляется во время игр или высокой нагрузки?","answers":{"Да":"goto:bsod-temp","Нет":"goto:bsod-memory","Не знаю":"goto:bsod-memory"}},
+        "bsod-temp": {"type":"instruction","text":"Сначала безопасно проверим температуры CPU/GPU через HWiNFO. Стресс-тест пока не запускаем.","tool_ref":"hwinfo","next":"bsod-memory"},
+        "bsod-memory": {"type":"question","text":"Ошибки выглядят случайными и меняются от сбоя к сбою?","answers":{"Да":"goto:memory-save","Нет":"goto:driver-route","Не знаю":"goto:driver-route"}},
+        "memory-save": {"type":"instruction","text":"Сохраните все открытые документы. Следующая встроенная проверка перезагрузит компьютер.","next":"memory-test"},
+        "memory-test": {"type":"instruction","text":"Нажмите Win + R, впишите mdsched.exe и нажмите Enter. Выберите проверку памяти при перезагрузке.","tool_ref":"windows-memory-diagnostic","next":"memory-result"},
+        "memory-result": {"type":"handoff","text":"После возвращения в Windows сообщите помощнику результат проверки памяти. Если он неясный, только тогда может понадобиться MemTest86.","next":"driver-route"},
+        "driver-route": {"type":"router","text":"Помощник сопоставляет повторяющийся модуль/код с устройством и сначала предлагает официальный драйвер производителя. DDU, WinDbg и стресс-тесты остаются экспертным резервом.","fallback":"bsod-verify"},
+        "bsod-verify": {"type":"verify","text":"После безопасного исправления пользуйтесь компьютером как обычно. Синий экран повторился?","answers":{"Нет":"resolved","Да":"expert-bsod"}},
+        "expert-bsod": {"type":"escalate","text":"BSOD повторяется. Теперь можно переходить к более глубокому анализу нескольких дампов, WinDbg, расширенной проверке RAM/накопителя или конкретного устройства."}
+      }
+    },
+    {
+      "id": "computer-slow",
+      "title": "Компьютер тормозит",
+      "triggers": ["тормозит", "медленно", "зависает", "долго открывается", "диск 100"],
+      "start": "slow-restart",
+      "nodes": {
+        "slow-restart": {"type":"instruction","text":"Сначала сохраните документы и перезагрузите компьютер обычным способом. После запуска пока не открывайте много программ.","next":"slow-still"},
+        "slow-still": {"type":"question","text":"После перезагрузки компьютер всё ещё заметно тормозит?","answers":{"Да":"goto:resmon-open","Нет":"resolved"}},
+        "resmon-open": {"type":"instruction","text":"Нажмите Win + R, впишите resmon.exe и нажмите Enter.","tool_ref":"resource-monitor","next":"slow-kind"},
+        "slow-kind": {"type":"question","text":"Что больше всего загружено: Процессор, Память или Диск? Если не знаете — выберите «Не понимаю».","answers":{"Процессор":"goto:cpu-heavy","Память":"goto:memory-heavy","Диск":"goto:disk-heavy","Не понимаю":"goto:slow-help"}},
+        "slow-help": {"type":"instruction","text":"В верхней части окна посмотрите на вкладки CPU, Память и Диск. Помощнику достаточно назвать, где нагрузка держится самой высокой.","next":"slow-kind"},
+        "cpu-heavy": {"type":"handoff","text":"Назовите помощнику верхний процесс в списке CPU. Ничего завершать самостоятельно не нужно.","next":"slow-verify"},
+        "memory-heavy": {"type":"handoff","text":"Назовите помощнику программу, которая использует больше всего памяти. Помощник решит, нормальна ли эта нагрузка.","next":"slow-verify"},
+        "disk-heavy": {"type":"handoff","text":"Назовите помощнику процесс с самой высокой активностью диска. Если одновременно есть зависания/ошибки диска, помощник предложит безопасную SMART-проверку.","next":"slow-verify"},
+        "slow-verify": {"type":"verify","text":"После выбранного безопасного действия компьютер стал работать нормально?","answers":{"Да":"resolved","Нет":"slow-deeper"}},
+        "slow-deeper": {"type":"escalate","text":"Переходим к следующей ветке: автозагрузка, накопитель, температура или системные ошибки — в зависимости от найденной нагрузки."}
+      }
+    },
+    {
+      "id": "no-internet",
+      "title": "Нет интернета",
+      "triggers": ["нет интернета", "wifi не работает", "wi-fi не работает", "сайты не открываются", "нет сети"],
+      "start": "phone-check",
+      "nodes": {
+        "phone-check": {"type":"question","text":"Подключите телефон к тому же Wi‑Fi. На телефоне интернет работает?","answers":{"Да":"goto:pc-wifi","Нет":"goto:router-restart","Не знаю":"goto:router-restart"}},
+        "router-restart": {"type":"instruction","text":"Выключите роутер из розетки на 20 секунд, затем включите обратно. Подождите 2–3 минуты.","risk":"low","next":"router-verify"},
+        "router-verify": {"type":"question","text":"Интернет на телефоне появился?","answers":{"Да":"goto:pc-wifi","Нет":"goto:provider-route"}},
+        "provider-route": {"type":"message","text":"Проблема, вероятно, не только в компьютере. Проверьте индикаторы роутера и сообщение/приложение вашего интернет-провайдера. Сетевые настройки Windows пока не сбрасываем.","next":"internet-end"},
+        "pc-wifi": {"type":"instruction","text":"На компьютере нажмите значок сети рядом с часами. Убедитесь, что Wi‑Fi включён и режим «В самолёте» выключен.","next":"pc-network-verify"},
+        "pc-network-verify": {"type":"question","text":"Компьютер подключён к вашему Wi‑Fi, но сайты всё равно не открываются?","answers":{"Да":"goto:windows-network-troubleshoot","Нет":"resolved"}},
+        "windows-network-troubleshoot": {"type":"instruction","text":"Откройте Параметры Windows и запустите доступное средство диагностики сети. Помощник покажет путь для вашей версии Windows.","tool_ref":"windows-troubleshooters","next":"network-result"},
+        "network-result": {"type":"handoff","text":"Сообщите помощнику, что именно написала диагностика. Не выполняем netsh reset или сброс всей сети без причины.","next":"network-deeper"},
+        "network-deeper": {"type":"escalate","text":"Если проблема осталась, помощник проверит DNS, IP, драйвер адаптера и только затем предложит изменение настроек."},
+        "internet-end": {"type":"end","text":"Сначала восстановите соединение роутера/провайдера; изменения Windows сейчас не нужны."}
+      }
+    },
+    {
+      "id": "disk-health",
+      "title": "Подозрение на проблему SSD/HDD",
+      "triggers": ["диск тормозит", "ssd проблема", "hdd проблема", "диск пропадает", "ошибка диска", "долго копирует"],
+      "start": "disk-data",
+      "nodes": {
+        "disk-data": {"type":"question","text":"На этом диске есть важные файлы, которых больше нигде нет?","answers":{"Да":"goto:backup-first","Нет":"goto:smart-check","Не знаю":"goto:backup-first"}},
+        "backup-first": {"type":"instruction","text":"Сначала скопируйте самые важные документы и фотографии на другой исправный диск или облако. Пока не запускаем исправление диска.","next":"smart-check"},
+        "smart-check": {"type":"instruction","text":"Проверим состояние накопителя без изменения данных. Помощник предложит CrystalDiskInfo или официальную утилиту производителя диска.","tool_ref":"crystaldiskinfo","risk":"low","next":"smart-result"},
+        "smart-result": {"type":"question","text":"Какой статус показывает программа: Хорошо/Good, Внимание/Caution или Плохо/Bad?","answers":{"Good":"goto:disk-filesystem","Caution":"goto:disk-stop","Bad":"goto:disk-stop","Не понимаю":"goto:smart-help"}},
+        "smart-help": {"type":"instruction","text":"Не меняйте настройки. Покажите помощнику только верхнюю часть окна со статусом здоровья, моделью диска и температурой.","next":"smart-result"},
+        "disk-stop": {"type":"escalate","text":"Накопитель сообщает о проблеме. Приоритет — сохранить данные. CHKDSK и другие ремонтные операции пока не запускаем."},
+        "disk-filesystem": {"type":"message","text":"SMART не показывает явной аппаратной тревоги. Если Windows сообщает об ошибках файловой системы, помощник отдельно решит, нужна ли проверка CHKDSK.","next":"disk-end"},
+        "disk-end": {"type":"end","text":"Диагностика накопителя завершена; следующий шаг зависит от исходной проблемы."}
+      }
+    }
+  ]
+}
