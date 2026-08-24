@@ -39,6 +39,10 @@
   const programsTitle=document.querySelector('#programs h2');
   if(programsTitle) programsTitle.textContent='Рекомендуемые к установке программы';
 
+  document.querySelectorAll('details summary').forEach(summary=>{
+    if(summary.textContent.trim()==='Правила и честные условия') summary.textContent='Правила и условия';
+  });
+
   const programsGrid=document.querySelector('#programs .programs');
   if(programsGrid&&!document.querySelector('[data-sf-extra="aida64"]')){
     const cards=[
