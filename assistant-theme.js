@@ -26,7 +26,9 @@
     .sf-components h3{text-align:center;margin:0 0 6px;font-size:22px}
     .sf-components>p{text-align:center;margin:0 0 15px;color:#56627a;font-size:13px}
     .sf-component-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .sf-component{padding:14px;border:1px solid rgba(38,48,82,.10);border-radius:14px;background:#fff}
+    .sf-component{padding:14px;border:1px solid rgba(38,48,82,.10);border-radius:14px;background:#fff;display:grid;grid-template-columns:42px 1fr;column-gap:10px;align-items:start}
+    .sf-component-icon{width:38px;height:38px;border-radius:10px;background:#f2f5f8;border:1px solid rgba(38,48,82,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;grid-row:1 / span 3}
+    .sf-component-icon img{width:28px;height:28px;object-fit:contain}
     .sf-component strong{display:block;font-size:14px;color:#091331}
     .sf-component span{display:block;margin-top:4px;color:#56627a;font-size:12px;line-height:1.4}
     .sf-component a{display:inline-block;margin-top:7px;color:#087f5b;text-decoration:none;font-size:12px;font-weight:800}
@@ -59,16 +61,18 @@
   }
 
   const programsSection=document.querySelector('#programs');
-  if(programsSection&&!document.querySelector('.sf-components')){
+  const oldComponents=document.querySelector('.sf-components');
+  if(oldComponents) oldComponents.remove();
+  if(programsSection){
     const block=document.createElement('div');
     block.className='sf-components';
     block.innerHTML=`<h3>Системные компоненты</h3><p>Устанавливайте только при необходимости — если программа или игра требует конкретный компонент.</p><div class="sf-component-grid">
-      <div class="sf-component searchable"><strong>DirectX Runtime</strong><span>Компоненты DirectX для совместимости программ и игр.</span><a href="https://www.microsoft.com/en-us/download/details.aspx?id=35" target="_blank" rel="noopener">Microsoft →</a></div>
-      <div class="sf-component searchable"><strong>Visual C++ Redistributable</strong><span>Библиотеки Microsoft Visual C++ для многих программ.</span><a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" target="_blank" rel="noopener">Microsoft →</a></div>
-      <div class="sf-component searchable"><strong>Microsoft Edge WebView2 Runtime</strong><span>Веб-компонент, который используют многие приложения Windows.</span><a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/" target="_blank" rel="noopener">Microsoft →</a></div>
-      <div class="sf-component searchable"><strong>Java Runtime Environment 8</strong><span>JRE 8 для приложений, которым нужен Java Runtime.</span><a href="https://www.java.com/download/" target="_blank" rel="noopener">Java →</a></div>
-      <div class="sf-component searchable"><strong>Autoruns</strong><span>Sysinternals-утилита Microsoft для просмотра автозапуска.</span><a href="https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns" target="_blank" rel="noopener">Microsoft →</a></div>
-      <div class="sf-component searchable"><strong>DirectX End-User Runtimes (June 2010)</strong><span>Старые библиотеки DirectX для некоторых старых игр и программ.</span><a href="https://www.microsoft.com/en-us/download/details.aspx?id=8109" target="_blank" rel="noopener">Microsoft →</a></div>
+      <div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="DirectX"></div><div><strong>DirectX Runtime</strong><span>Компоненты DirectX для совместимости программ и игр.</span><a href="https://www.microsoft.com/en-us/download/details.aspx?id=35" target="_blank" rel="noopener">Microsoft →</a></div></div>
+      <div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="Visual C++"></div><div><strong>Visual C++ Redistributable</strong><span>Библиотеки Microsoft Visual C++ для многих программ.</span><a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" target="_blank" rel="noopener">Microsoft →</a></div></div>
+      <div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="WebView2"></div><div><strong>Microsoft Edge WebView2 Runtime</strong><span>Веб-компонент, который используют многие приложения Windows.</span><a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/" target="_blank" rel="noopener">Microsoft →</a></div></div>
+      <div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=java.com&sz=128" alt="Java"></div><div><strong>Java Runtime Environment 8</strong><span>JRE 8 для приложений, которым нужен Java Runtime.</span><a href="https://www.java.com/download/" target="_blank" rel="noopener">Java →</a></div></div>
+      <div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128" alt="Autoruns"></div><div><strong>Autoruns</strong><span>Sysinternals-утилита Microsoft для просмотра автозапуска.</span><a href="https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns" target="_blank" rel="noopener">Microsoft →</a></div></div>
+      <div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=microsoft.com&sz=128" alt="DirectX June 2010"></div><div><strong>DirectX End-User Runtimes (June 2010)</strong><span>Старые библиотеки DirectX для некоторых старых игр и программ.</span><a href="https://www.microsoft.com/en-us/download/details.aspx?id=8109" target="_blank" rel="noopener">Microsoft →</a></div></div>
     </div>`;
     const accordions=programsSection.querySelector('.accordions');
     programsSection.insertBefore(block,accordions||null);
