@@ -1,0 +1,37 @@
+{
+  "version":"1.0.0",
+  "updated":"2026-08-24",
+  "purpose":"Second normalized error-code pack for Step & Flow. Routes exact codes to novice-safe diagnostic families instead of treating a code as a final diagnosis.",
+  "policy":{"code_is_not_root_cause":true,"prefer_official_source":true,"one_step_at_a_time":true,"never_run_driver_verifier_for_novice":true,"never_delete_driver_file_by_name":true},
+  "families":[
+    {"id":"device-manager","recognizers":["Код 10","Code 10","Код 22","Code 22","Код 28","Code 28","Код 31","Code 31","Код 43","Code 43"],"route":"device-driver-flow","entries":[
+      {"code":"10","meaning":"Устройство не может запуститься.","first_steps":["Зафиксировать точное название устройства","Перезагрузить ПК","Проверить Windows Update и необязательные обновления драйверов","Если проблема появилась после обновления драйвера — рассмотреть откат"],"avoid":["Не скачивать драйвер с неизвестных сайтов","Не удалять системные файлы вручную"]},
+      {"code":"22","meaning":"Устройство отключено.","first_steps":["Открыть свойства устройства","Проверить, можно ли безопасно включить устройство"],"avoid":["Не включать неизвестное устройство без понимания его назначения"]},
+      {"code":"28","meaning":"Для устройства не установлен подходящий драйвер.","first_steps":["Определить производителя и модель","Сначала Windows Update","Затем официальный сайт производителя при необходимости"]},
+      {"code":"31","meaning":"Windows не смогла корректно загрузить необходимые для устройства драйверы/службу.","first_steps":["Перезагрузка","Windows Update","Проверка недавнего изменения драйвера","Официальный драйвер производителя"]},
+      {"code":"43","meaning":"Устройство/драйвер сообщил Windows о проблеме.","first_steps":["Переподключить внешнее устройство","Полностью выключить и включить ПК","Проверить обновления","Проверить устройство на другом порту/ПК, если это безопасно"],"note":"Code 43 не доказывает физическую поломку устройства."}
+    ]},
+    {"id":"activation","recognizers":["0xC004F211","0xC004F213","0xC004F034","0xC004F210","0xC004E016","0xC004FC03","0x8007267C","0xC004C008","0xC004C770","0x803FA071"],"route":"windows-activation-flow","first_steps":["Проверить версию/редакцию Windows через winver","Запустить официальный Activation troubleshooter/Get Help","Повторно считать код после диагностики"],"entries":[
+      {"code":"0xC004F211","meaning":"Windows обнаружила значительное изменение оборудования.","route_hint":"reactivation-after-hardware-change"},
+      {"code":"0xC004F213","meaning":"Windows не нашла подходящий ключ продукта/лицензию на устройстве.","route_hint":"license-key-check"},
+      {"code":"0xC004F034","meaning":"Ключ может быть недействительным или предназначен для другой версии/редакции Windows.","route_hint":"edition-key-match"},
+      {"code":"0xC004F210","meaning":"Редакция Windows может не соответствовать ключу или цифровой лицензии.","route_hint":"edition-key-match"},
+      {"code":"0xC004E016","meaning":"Ключ может не соответствовать установленной версии/редакции Windows.","route_hint":"edition-key-match"},
+      {"code":"0xC004FC03","meaning":"Активации мешает соединение с интернетом или сетевой/защитный фактор.","route_hint":"activation-connectivity"},
+      {"code":"0x8007267C","meaning":"Нет подключения к интернету или сервер активации временно недоступен.","route_hint":"activation-connectivity"},
+      {"code":"0xC004C008","meaning":"Ключ уже мог использоваться на другом устройстве или превышено допустимое число устройств.","route_hint":"license-usage"}
+    ],"safety":"Бот не предлагает пиратские активаторы, KMS-эмуляторы или обход лицензирования."},
+    {"id":"bsod-common","recognizers":["IRQL_NOT_LESS_OR_EQUAL","DRIVER_IRQL_NOT_LESS_OR_EQUAL","MEMORY_MANAGEMENT","SYSTEM_SERVICE_EXCEPTION","NTFS_FILE_SYSTEM","DRIVER_POWER_STATE_FAILURE","VIDEO_TDR_TIMEOUT_DETECTED","VIDEO_ENGINE_TIMEOUT_DETECTED","KMODE_EXCEPTION_NOT_HANDLED"],"route":"bsod","entries":[
+      {"code":"0x0000000A","name":"IRQL_NOT_LESS_OR_EQUAL","route_hint":"driver-or-memory-context","first_steps":["Зафиксировать Stop Code и имя модуля, если показано","Проверить недавние драйверы/оборудование","При повторениях собрать несколько дампов"]},
+      {"code":"0x000000D1","name":"DRIVER_IRQL_NOT_LESS_OR_EQUAL","route_hint":"driver-context","first_steps":["Зафиксировать имя драйвера","Проверить официальный обновлённый драйвер","Сопоставить несколько повторяющихся сбоев"]},
+      {"code":"0x0000001A","name":"MEMORY_MANAGEMENT","route_hint":"memory-check","first_steps":["Не объявлять RAM сломанной по одному BSOD","При повторениях запустить Windows Memory Diagnostic","При неоднозначном результате перейти к MemTest86"]},
+      {"code":"0x0000003B","name":"SYSTEM_SERVICE_EXCEPTION","route_hint":"driver-system-context","first_steps":["Проверить недавние драйверы/службы","Проверить Device Manager","Сопоставить время сбоя с Event Viewer"]},
+      {"code":"0x00000024","name":"NTFS_FILE_SYSTEM","route_hint":"storage-filesystem","first_steps":["Сначала оценить ценность данных и сделать резервную копию","Проверить состояние накопителя","Только затем решать вопрос проверки файловой системы"]},
+      {"code":"0x0000009F","name":"DRIVER_POWER_STATE_FAILURE","route_hint":"driver-power-transition","first_steps":["Уточнить, происходит ли сбой при сне/пробуждении/выключении","Собрать дамп при повторении","Проверить драйверы связанных устройств"]},
+      {"code":"0x00000117","name":"VIDEO_TDR_TIMEOUT_DETECTED","route_hint":"display-driver-gpu","first_steps":["Проверить официальный графический драйвер","Проверить температуры без стресс-теста","Сопоставить повторяющиеся дампы"]},
+      {"code":"0x0000001E","name":"KMODE_EXCEPTION_NOT_HANDLED","route_hint":"driver-system-context","first_steps":["Зафиксировать указанный драйвер, если он есть","Проверить недавно добавленные драйверы/службы","При проблеме загрузки использовать Safe Mode по официальной ветке"]}
+    ],"expert_escalation":["Несколько crash dumps","WinDbg !analyze","аппаратная диагностика по найденной ветке"],"avoid":["Не считать один .sys файл доказанной причиной","Не запускать Driver Verifier на всех драйверах","Не начинать со стресс-теста"]},
+    {"id":"unexpected-restart-event","recognizers":["Event ID 41","Kernel-Power 41","Событие 41"],"route":"unexpected-restart","meaning":"Windows обнаружила, что предыдущая работа завершилась некорректно. Сам Event ID 41 подтверждает факт неожиданного завершения, но не определяет единственную причину.","first_steps":["Проверить BugcheckCode в событии","Если BugcheckCode ненулевой — преобразовать при необходимости в hex и перейти в BSOD индекс","Если кода нет — продолжить ветку питание/перегрев/аппаратный сбой/журнал событий"],"avoid":["Не объявлять блок питания неисправным только из-за Event ID 41"]}
+  ],
+  "source_priority":["Microsoft Learn","Microsoft Support","OEM/vendor documentation","Step & Flow validated case index","community corroboration"]
+}
