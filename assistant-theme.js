@@ -6,6 +6,21 @@
     .sf-components,.sf-windows{margin-top:26px;padding:20px;border:1px solid rgba(38,48,82,.10);border-radius:20px;background:#f8fafc}.sf-components h3,.sf-windows h3{text-align:center;margin:0 0 6px;font-size:22px}.sf-components>p,.sf-windows>p{text-align:center;margin:0 0 15px;color:#56627a;font-size:13px}.sf-component-grid,.sf-windows-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.sf-component,.sf-win-card{padding:14px;border:1px solid rgba(38,48,82,.10);border-radius:14px;background:#fff;display:grid;grid-template-columns:42px 1fr;column-gap:10px;align-items:start}.sf-component-icon{width:38px;height:38px;border-radius:10px;background:#f2f5f8;border:1px solid rgba(38,48,82,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;grid-row:1 / span 3}.sf-component-icon img{width:28px;height:28px;object-fit:contain}.sf-component strong,.sf-win-card strong{display:block;font-size:14px;color:#091331}.sf-component span,.sf-win-card span{display:block;margin-top:4px;color:#56627a;font-size:12px;line-height:1.4}.sf-component a,.sf-win-card a{display:inline-block;margin-top:7px;color:#087f5b;text-decoration:none;font-size:12px;font-weight:800}.sf-windows{background:linear-gradient(145deg,#eef7ff,#f8fbff)}
     @media(max-width:900px){.sf-component-grid,.sf-windows-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}#problems .problem{min-height:142px!important}.sf-component-grid,.sf-windows-grid{grid-template-columns:1fr}}@media(max-width:520px){.sf-help-btn{bottom:46px!important}.sf-help-panel{bottom:104px!important}}
   `;document.head.appendChild(style);
+
+  const stepCounts={
+    'windows-wont-start.html':'9 шагов',
+    'program-not-installing.html':'8 шагов',
+    'no-internet.html':'8 шагов',
+    'computer-slow.html':'9 шагов',
+    'something-stopped-working.html':'9 шагов',
+    'windows-after-install.html':'9 шагов'
+  };
+  document.querySelectorAll('#problems .problem').forEach(card=>{
+    const href=(card.getAttribute('href')||'').split('?')[0].split('#')[0];
+    const badge=card.querySelector('.steps');
+    if(badge&&stepCounts[href])badge.textContent=stepCounts[href];
+  });
+
   const programsTitle=document.querySelector('#programs h2');if(programsTitle)programsTitle.textContent='Рекомендуемые к установке программы';
   document.querySelectorAll('details summary').forEach(s=>{if(s.textContent.trim()==='Правила и честные условия')s.textContent='Правила и условия'});
   const programsGrid=document.querySelector('#programs .programs');
