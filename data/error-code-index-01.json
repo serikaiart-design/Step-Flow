@@ -1,0 +1,53 @@
+{
+  "version":"1.0.0",
+  "updated":"2026-08-24",
+  "purpose":"Быстрый маршрутизатор Step & Flow по кодам ошибок Windows. Код не считается диагнозом: он выбирает безопасную ветку диагностики.",
+  "policy":{"exact_code_match_first":true,"code_is_not_root_cause":true,"prefer_official_source":true,"one_step_at_a_time":true,"expert_tools_hidden_by_default":true},
+  "windows_update":[
+    {"code":"0x8007000d","meaning":"Проблема с файлами Windows Update или кэшем обновлений","first_route":"windows-update-troubleshooter","next_if_failed":["update-cache","system-integrity"],"risk":"low_to_medium"},
+    {"code":"0x800705b4","meaning":"Обновление заняло слишком много времени или было прервано","first_route":"check-network-and-restart","next_if_failed":["windows-update-troubleshooter","update-services"],"risk":"low"},
+    {"code":"0x80240034","meaning":"Незавершённое обновление или проблема соединения/службы","first_route":"windows-update-troubleshooter","next_if_failed":["update-service-status","update-cache"],"risk":"low_to_medium"},
+    {"code":"0x800f0922","meaning":"Установка обновления не завершилась; среди возможных причин место на диске, VPN или компоненты системы","first_route":"check-free-space-and-vpn","next_if_failed":["windows-update-troubleshooter","system-integrity"],"risk":"low"},
+    {"code":"0x80070057","meaning":"Ошибка установки/конфигурации; возможны повреждённые системные данные","first_route":"windows-update-troubleshooter","next_if_failed":["system-integrity"],"risk":"low_to_medium"},
+    {"code":"0x80080005","meaning":"Ошибка Windows Update, возможна проблема системной конфигурации/компонентов","first_route":"windows-update-troubleshooter","next_if_failed":["system-integrity"],"risk":"low_to_medium"},
+    {"code":"0xC1900101","meaning":"При обновлении часто указывает на проблему совместимости драйвера","first_route":"driver-compatibility","next_if_failed":["manufacturer-driver","setupdiag"],"risk":"medium"},
+    {"code":"0x80248014","meaning":"Проблема базы/службы Windows Update","first_route":"windows-update-troubleshooter","next_if_failed":["update-service-status"],"risk":"low_to_medium"},
+    {"code":"0x80070005","meaning":"Access Denied / недостаточные разрешения","first_route":"check-admin-access","next_if_failed":["windows-update-troubleshooter"],"risk":"low"},
+    {"code":"0x80070002","meaning":"Обновление не установилось","first_route":"restart-and-troubleshooter","next_if_failed":["check-free-space","update-cache"],"risk":"low_to_medium"},
+    {"code":"0x80070003","meaning":"Ошибка установки обновления","first_route":"restart-and-troubleshooter","next_if_failed":["check-free-space","update-cache"],"risk":"low_to_medium"},
+    {"code":"0x80070422","meaning":"Служба Windows Update отключена или остановлена","first_route":"update-service-status","next_if_failed":["windows-update-troubleshooter"],"risk":"medium"},
+    {"code":"0x80070020","meaning":"Другой процесс может блокировать Windows Update","first_route":"restart-and-troubleshooter","next_if_failed":["identify-blocking-process"],"risk":"low_to_medium"},
+    {"code":"0x800F081F","meaning":"Отсутствуют или повреждены необходимые системные компоненты","first_route":"system-integrity","next_if_failed":["component-store-repair"],"risk":"medium"},
+    {"code":"0x80073712","meaning":"Повреждены или отсутствуют файлы, необходимые Windows Update","first_route":"system-integrity","next_if_failed":["component-store-repair"],"risk":"medium"},
+    {"code":"0x80246007","meaning":"Необходимые файлы обновления не загружены/недоступны","first_route":"windows-update-troubleshooter","next_if_failed":["network-check","update-cache"],"risk":"low_to_medium"}
+  ],
+  "device_manager":[
+    {"code":"1","name":"CM_PROB_NOT_CONFIGURED","route":"device-not-configured"},
+    {"code":"3","name":"CM_PROB_OUT_OF_MEMORY","route":"device-resource-problem"},
+    {"code":"9","name":"CM_PROB_INVALID_DATA","route":"device-invalid-data"},
+    {"code":"10","name":"CM_PROB_FAILED_START","route":"device-cannot-start"},
+    {"code":"12","name":"CM_PROB_NORMAL_CONFLICT","route":"device-resource-conflict"},
+    {"code":"14","name":"CM_PROB_NEED_RESTART","route":"restart-required"},
+    {"code":"16","name":"CM_PROB_PARTIAL_LOG_CONF","route":"device-resource-configuration"},
+    {"code":"18","name":"CM_PROB_REINSTALL","route":"driver-reinstall"},
+    {"code":"19","name":"CM_PROB_REGISTRY","route":"device-registry-configuration"},
+    {"code":"21","name":"CM_PROB_WILL_BE_REMOVED","route":"device-removal-pending"}
+  ],
+  "bsod_router":{
+    "input_examples":["IRQL_NOT_LESS_OR_EQUAL","CRITICAL_PROCESS_DIED","PAGE_FAULT_IN_NONPAGED_AREA","0x0000000A"],
+    "rule":"Сопоставить точное имя/hex с Microsoft Bug Check Code Reference. Затем собрать контекст и при повторении — дампы. Не объявлять модуль на экране доказанной причиной.",
+    "first_steps":["capture_stop_code","ask_when_it_happens","check_recurrence","reliability-monitor"],
+    "repeated_crash_next":["collect-multiple-dumps","safe-driver-hardware-routing"],
+    "expert_only":["windbg","driver-verifier"],
+    "known_examples":[
+      {"code":"0x0000000A","name":"IRQL_NOT_LESS_OR_EQUAL"},
+      {"name":"CRITICAL_PROCESS_DIED","route":"bsod-general"},
+      {"name":"PAGE_FAULT_IN_NONPAGED_AREA","route":"bsod-general"}
+    ]
+  },
+  "source_authority":[
+    {"id":"ms-update-common","publisher":"Microsoft Support","scope":"Windows Update common error codes"},
+    {"id":"ms-device-manager-codes","publisher":"Microsoft Learn","scope":"Device Manager problem codes"},
+    {"id":"ms-bugcheck-reference","publisher":"Microsoft Learn","scope":"Bug Check code reference"}
+  ]
+}
