@@ -3,7 +3,10 @@
   style.textContent=`
     .footer-inner{position:relative;min-height:28px}
     .footer .copy{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center}
+    .sf-help-btn{bottom:42px!important}
+    .sf-help-panel{bottom:102px!important}
     @media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}}
+    @media(max-width:520px){.sf-help-btn{bottom:34px!important}.sf-help-panel{bottom:92px!important}}
   `;
   document.head.appendChild(style);
 
@@ -22,7 +25,7 @@
     const title=document.querySelector('.sf-help-title');
     if(title) title.textContent='Step & Flow · Помощник';
 
-    document.querySelectorAll('a[href="#faq"]').forEach(link=>{
+    document.querySelectorAll('a[href="#faq"],a[href="#ask"]').forEach(link=>{
       if(link.textContent.trim()!=='Задать вопрос')return;
       link.setAttribute('href','#ask');
       link.setAttribute('role','button');
