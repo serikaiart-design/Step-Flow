@@ -1,11 +1,12 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-08-24",
   "rules": {
     "source_policy": "Использовать только материалы Step & Flow и официальные ссылки, указанные в библиотеке.",
     "tone": "Просто, спокойно, без сложных терминов. Один безопасный шаг за раз.",
-    "safety": "Перед рискованным действием показать предупреждение и безопасную альтернативу.",
-    "fallback": "Если ответа в библиотеке нет — честно сказать об этом. Не выдумывать инструкции."
+    "safety": "Сначала диагностика без изменений системы. Перед любым исправлением показать, что будет сделано, уровень риска и запросить подтверждение пользователя.",
+    "fallback": "Если ответа в библиотеке нет — честно сказать об этом. Не выдумывать инструкции.",
+    "repair_policy": "Не запускать сторонние ремонтные утилиты автоматически. Сначала использовать встроенные средства Windows."
   },
   "topics": [
     {
@@ -43,10 +44,66 @@
     {
       "id": "something-stopped-working",
       "title": "Что-то перестало работать",
-      "keywords": ["перестало работать", "раньше работало", "сломалось", "появилась ошибка"],
-      "first_step": "Вспомните, что изменилось перед проблемой: обновление, новая программа или подключённое устройство. Затем перезагрузите компьютер.",
+      "keywords": ["перестало работать", "раньше работало", "сломалось", "появилась ошибка", "сбой", "вылетает"],
+      "first_step": "Сначала откройте Монитор устойчивости Windows: нажмите Win+R, введите perfmon /rel и нажмите Enter. Посмотрите, появились ли красные значки ошибок примерно в то время, когда началась проблема.",
       "page": "something-stopped-working.html",
-      "risk": "low"
+      "risk": "low",
+      "diagnostics": [
+        {
+          "id": "reliability-monitor",
+          "name": "Монитор устойчивости Windows",
+          "command": "perfmon /rel",
+          "mode": "read_only",
+          "risk": "low",
+          "purpose": "Показать историю сбоев приложений, Windows и оборудования без изменения системы."
+        }
+      ]
+    },
+    {
+      "id": "system-files-damaged",
+      "title": "Возможное повреждение системных файлов Windows",
+      "keywords": ["повреждены системные файлы", "sfc", "dism", "ошибки windows", "windows повреждена", "системные файлы", "после обновления зависает"],
+      "first_step": "Сначала проверьте историю сбоев через Монитор устойчивости: Win+R → perfmon /rel. Это ничего не меняет в системе.",
+      "risk": "medium",
+      "workflow": [
+        {
+          "step": 1,
+          "type": "diagnostic",
+          "tool": "Reliability Monitor",
+          "command": "perfmon /rel",
+          "risk": "low",
+          "requires_admin": false,
+          "changes_system": false
+        },
+        {
+          "step": 2,
+          "type": "repair",
+          "tool": "DISM",
+          "command": "DISM.exe /Online /Cleanup-Image /RestoreHealth",
+          "risk": "medium",
+          "requires_admin": true,
+          "changes_system": true,
+          "requires_user_confirmation": true,
+          "explanation": "Windows проверит и при необходимости восстановит хранилище компонентов. Личные файлы удаляться не должны."
+        },
+        {
+          "step": 3,
+          "type": "repair",
+          "tool": "SFC",
+          "command": "sfc /scannow",
+          "risk": "medium",
+          "requires_admin": true,
+          "changes_system": true,
+          "requires_user_confirmation": true,
+          "explanation": "Windows проверит защищённые системные файлы и попробует заменить повреждённые исправными копиями."
+        },
+        {
+          "step": 4,
+          "type": "verify",
+          "question": "Проблема исчезла после перезагрузки?",
+          "answers": ["Да", "Нет"]
+        }
+      ]
     },
     {
       "id": "windows-after-install",
