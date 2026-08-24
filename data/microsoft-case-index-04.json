@@ -1,0 +1,134 @@
+{
+  "version":"1.0.0",
+  "updated":"2026-08-24",
+  "source_family":"Microsoft Support",
+  "purpose":"Normalized novice-first cases: USB, Device Manager/drivers, apps and Windows recovery.",
+  "global_rules":[
+    "Prefer Windows Update for normal driver updates before manual driver hunting.",
+    "If a manual driver is required, use the hardware/device manufacturer's official site only.",
+    "Record Device Manager error code before changing a problematic device.",
+    "Repair an app before Reset when Repair is available.",
+    "Backup important files before recovery operations that may affect apps, settings or data.",
+    "Before Reset/Reinstall on an encrypted device, make sure the BitLocker recovery key is available.",
+    "Never route a novice directly to firmware/UEFI changes, command-line recovery or destructive reinstall without an explicit reason and confirmation."
+  ],
+  "cases":[
+    {
+      "id":"ms-usb-device-not-recognized",
+      "category":"usb",
+      "symptoms":["USB не определяется","Windows не видит флешку","USB device not recognized","подключаю устройство и ничего","желтый восклицательный знак USB"],
+      "sequence":[
+        "Ask what was connected: flash drive, external disk, phone, printer, camera, USB-C dock or other device.",
+        "Ask whether the same device works in another USB port and, when safely possible, on another computer.",
+        "If Device Manager shows a warning icon, open device Properties and record the Device status/error code before making changes.",
+        "Route the exact Device Manager code to the code-specific Microsoft resolution.",
+        "If the issue is USB-C, also check cable/charger/alternate-mode compatibility before assuming a Windows fault.",
+        "Only after identification of a driver problem, proceed to the driver flow."
+      ],
+      "do_not":["format a storage device as a first step","delete unknown devices blindly","assume every USB failure is a driver failure"],
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-us/windows/hardware/fix-usb-c-problems-in-windows"
+    },
+    {
+      "id":"ms-device-manager-error-code",
+      "category":"drivers",
+      "symptoms":["желтый восклицательный знак","код ошибки диспетчера устройств","device manager code","устройство не работает"],
+      "sequence":[
+        "Open Device Manager.",
+        "Find the device with the problem.",
+        "Open Properties and read Device status.",
+        "Capture the exact numeric error code.",
+        "Use the Microsoft code-specific resolution rather than applying a generic driver fix."
+      ],
+      "bot_capture_fields":["device_name","device_category","error_code","error_text","problem_started_after_update"],
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-US/Windows/Hardware/Drivers/error-codes-in-device-manager-in-windows"
+    },
+    {
+      "id":"ms-driver-update-reinstall-rollback",
+      "category":"drivers",
+      "symptoms":["нужен драйвер","драйвер сломался","после обновления устройство не работает","обновить драйвер","переустановить драйвер"],
+      "decision_order":[
+        {"when":"routine update/no specific failure","action":"Prefer Windows Update for recommended driver updates."},
+        {"when":"device has a specific Device Manager error","action":"Resolve the exact code first."},
+        {"when":"problem began immediately after a driver/Windows update","action":"Consider Roll Back Driver when available."},
+        {"when":"driver installation appears corrupted and device is correctly identified","action":"Reinstall through Device Manager, then restart so Windows can attempt reinstall."},
+        {"when":"Windows cannot find a suitable driver","action":"Use the official device manufacturer's site for the exact model and Windows version."}
+      ],
+      "safety":"Do not recommend random driver-download websites or automated third-party driver packs.",
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-us/windows/update-drivers-through-device-manager-in-windows-ec62f46c-ff14-c91d-eead-d7126dc1f7b6"
+    },
+    {
+      "id":"ms-app-not-working",
+      "category":"applications",
+      "symptoms":["программа не работает","приложение зависает","программа не запускается","приложение сломалось"],
+      "sequence":[
+        "Determine whether only one app is affected or Windows itself is unstable.",
+        "Restart the app; if appropriate restart Windows.",
+        "For supported apps open Settings > Apps > Installed apps > Advanced options.",
+        "Choose Repair first when available because it is the less disruptive option.",
+        "If Repair is unavailable or does not solve the issue, explain what Reset can remove/reset before asking permission.",
+        "For classic desktop programs, check Programs and Features for Repair/Change.",
+        "If only this app fails, stay in the application branch rather than repairing Windows globally."
+      ],
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-us/windows/apps/repair-apps-and-programs-in-windows"
+    },
+    {
+      "id":"ms-app-install-remove-blocked",
+      "category":"applications",
+      "symptoms":["программа не устанавливается","не могу удалить программу","ошибка установки программы","не обновляется программа"],
+      "sequence":[
+        "Restart Windows first.",
+        "If the app supports it, try Repair; if needed and understood, Reset.",
+        "Distinguish a Microsoft Store app from a classic desktop program and route accordingly.",
+        "Capture the exact installer/uninstaller error text or code before deeper changes.",
+        "Avoid registry cleaners as a generic response."
+      ],
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-US/Windows/Deployment/Install-Upgrade/fix-problems-that-block-programs-from-being-installed-or-removed"
+    },
+    {
+      "id":"ms-recovery-router",
+      "category":"recovery",
+      "symptoms":["Windows сломалась","восстановить Windows","Windows не загружается","после обновления всё плохо","сбросить компьютер"],
+      "preflight":["Ask whether Windows starts.","Ask what changed immediately before the problem.","Ask whether important files are backed up.","If encryption may be enabled, verify BitLocker recovery-key availability before advanced recovery."],
+      "routing":[
+        {"problem":"Windows does not start or keeps loading","preferred":"Startup Repair"},
+        {"problem":"Windows does not start and Startup Repair fails","preferred":"System Restore when appropriate"},
+        {"problem":"PC became unstable after a recently installed app/change","preferred":"System Restore when appropriate"},
+        {"problem":"PC became unstable after a recent Windows update","preferred":"Uninstall the problematic update / appropriate update recovery path"},
+        {"problem":"Problems installing/applying Windows updates while Windows still works","preferred":"Windows Update recovery/reinstall-current-version path before destructive reinstall when applicable"},
+        {"problem":"Persistent Windows problems after safer options fail","preferred":"Reset this PC, with explicit explanation of Keep my files vs Remove everything"},
+        {"problem":"Windows will not start and other recovery options fail","preferred":"Recovery drive or installation media, expert-guided"}
+      ],
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-us/windows/recovery-options-in-windows-31ce2444-7de3-818c-d626-e3b5a3024da5"
+    },
+    {
+      "id":"ms-reset-pc-safety-gate",
+      "category":"recovery",
+      "symptoms":["reset this pc","сброс компьютера","переустановить Windows с сохранением файлов"],
+      "mandatory_before_action":["Back up important files.","Explain that apps and settings can be removed even with Keep my files.","If encrypted, ensure BitLocker recovery key is available.","Confirm which reset option the user intends to use."],
+      "options":[
+        {"name":"Keep my files","meaning":"Reinstalls Windows and keeps personal files, but removes apps and resets settings."},
+        {"name":"Remove everything","meaning":"Reinstalls Windows and removes personal files, apps and settings; destructive and never selected by the bot automatically."}
+      ],
+      "risk":"high",
+      "requires_explicit_confirmation":true,
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-us/windows/reset-your-pc-0ef73740-b927-549b-b7c9-e6f2b48d275e"
+    },
+    {
+      "id":"ms-windows-recovery-environment",
+      "category":"recovery",
+      "symptoms":["автоматическое восстановление","Windows RE","advanced startup","дополнительные параметры","Windows не запускается"],
+      "available_tools":["Startup Repair","Startup Settings","System Restore","Uninstall Updates","Reset this PC","Command Prompt","UEFI Firmware Settings","System Image Recovery"],
+      "bot_policy":"Expose only the tool justified by the diagnosed branch. Do not present the entire advanced menu as a list of things for a novice to try.",
+      "important":"Some recovery operations can require the BitLocker recovery key.",
+      "confidence":"official-primary",
+      "source":"https://support.microsoft.com/en-us/windows/windows-recovery-environment-0eb14733-6301-41cb-8d26-06a12b42770b"
+    }
+  ]
+}
