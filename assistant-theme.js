@@ -1,4 +1,12 @@
 (()=>{
+  const style=document.createElement('style');
+  style.textContent=`
+    .footer-inner{position:relative;min-height:28px}
+    .footer .copy{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center}
+    @media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}}
+  `;
+  document.head.appendChild(style);
+
   const apply=()=>{
     const btn=document.querySelector('.sf-help-btn');
     if(!btn)return false;
@@ -13,6 +21,19 @@
     });
     const title=document.querySelector('.sf-help-title');
     if(title) title.textContent='Step & Flow · Помощник';
+
+    document.querySelectorAll('a[href="#faq"]').forEach(link=>{
+      if(link.textContent.trim()!=='Задать вопрос')return;
+      link.setAttribute('href','#ask');
+      link.setAttribute('role','button');
+      link.onclick=e=>{
+        e.preventDefault();
+        const panel=document.querySelector('.sf-help-panel');
+        if(panel&&!panel.classList.contains('open')) btn.click();
+        setTimeout(()=>document.querySelector('.sf-help-form input')?.focus(),60);
+        history.replaceState(null,'',location.pathname+location.search+'#ask');
+      };
+    });
     return true;
   };
   if(!apply()){
