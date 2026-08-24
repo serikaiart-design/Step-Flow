@@ -5,9 +5,9 @@
     btn.textContent='Помощник';
     btn.setAttribute('aria-label','Открыть помощник');
     Object.assign(btn.style,{
-      background:'linear-gradient(135deg,#ff3d00 0%,#ff007a 52%,#7c3aed 100%)',
+      background:'linear-gradient(135deg,#16a34a 0%,#059669 55%,#047857 100%)',
       color:'#fff',
-      boxShadow:'0 12px 32px rgba(255,0,122,.38),0 0 0 3px rgba(255,255,255,.72)',
+      boxShadow:'0 12px 30px rgba(5,150,105,.30),0 0 0 3px rgba(255,255,255,.78)',
       fontWeight:'900',
       letterSpacing:'.1px'
     });
