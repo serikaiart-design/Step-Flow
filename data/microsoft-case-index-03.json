@@ -1,0 +1,89 @@
+{
+  "version":"1.0.0",
+  "updated":"2026-08-24",
+  "source_tier":1,
+  "source_authority":"Microsoft Support",
+  "purpose":"Нормализованные официальные сценарии Microsoft для маршрутизации Step & Flow. Пользователю показывать по одному простому шагу.",
+  "cases":[
+    {
+      "id":"camera-not-working",
+      "intent":["камера не работает","вебкамера не работает","камера не определяется","черный экран камеры","камера пропала"],
+      "platform":["Windows 11","Windows 10"],
+      "source":"https://support.microsoft.com/en-us/windows/hardware/camera/camera-doesn-t-work-in-windows",
+      "official_sequence":[
+        "Для Windows 11 начать с Camera troubleshooter/Get Help, когда он доступен",
+        "Проверить физическое подключение внешней камеры",
+        "Проверить физический выключатель, клавишу Fn или шторку камеры",
+        "Проверить Privacy & security > Camera и доступ приложений/desktop apps",
+        "Проверить камеру в стандартном приложении Camera, чтобы отделить проблему Windows от конкретной программы",
+        "Проверить Windows Update и Optional updates, затем выполнить обычную перезагрузку",
+        "Запустить средство устранения неполадок камеры",
+        "Если камера внешняя — попробовать другой USB-порт",
+        "В Device Manager проверить наличие камеры и Scan for hardware changes",
+        "Если проблема появилась после обновления — рассмотреть Roll Back Driver",
+        "Удаление/переустановка драйвера — только более глубокий этап после простых проверок",
+        "Если не помогло — перейти к поддержке производителя камеры/ПК"
+      ],
+      "routing":[
+        {"if":"camera works in Windows Camera app but not target app","then":"app-specific camera permissions/settings"},
+        {"if":"camera stopped after Windows/driver update","then":"driver rollback branch"},
+        {"if":"external camera absent","then":"connection/USB port/other-device test"},
+        {"if":"camera disabled by hardware switch/shutter","then":"enable physically before software changes"},
+        {"if":"camera absent from Device Manager after scan","then":"manufacturer/hardware branch"}
+      ],
+      "novice_policy":["Сначала попросить пользователя посмотреть, есть ли шторка/кнопка камеры","Не начинать с удаления драйвера","Перед изменением драйвера объяснить, что будет сделано","После каждого шага снова открыть приложение Camera и проверить изображение"],
+      "risk":{"read_only":"low","privacy_setting_change":"low","driver_update":"medium","driver_rollback":"medium","driver_uninstall":"medium"}
+    },
+    {
+      "id":"camera-black-screen",
+      "intent":["камера черный экран","вебкамера показывает черное","нет изображения с камеры"],
+      "source":"https://support.microsoft.com/en-us/windows/hardware/camera/camera-doesn-t-work-in-windows",
+      "sequence":["Проверить, не закрыт ли объектив физической шторкой","Проверить Camera app","Проверить камеру в другом приложении","Проверить разрешения","Проверить драйвер/обновление","Для внешней камеры попробовать другой USB-порт"],
+      "interpretation":"Если Camera app работает, а конкретная программа нет, проблема вероятнее в настройках/разрешениях этой программы, а не в самой камере."
+    },
+    {
+      "id":"camera-after-update",
+      "intent":["после обновления камера не работает","камера пропала после windows update"],
+      "source":"https://support.microsoft.com/en-us/windows/hardware/camera/camera-doesn-t-work-in-windows",
+      "sequence":["Подтвердить, что проблема началась после обновления","Проверить Camera app и разрешения","Device Manager > Camera > Properties > Driver","Если доступно — Roll Back Driver","Перезагрузить и проверить","Если rollback недоступен/не помог — более глубокая переустановка/официальный драйвер производителя"],
+      "risk":"medium"
+    },
+    {
+      "id":"microphone-not-working",
+      "intent":["микрофон не работает","меня не слышно","не работает микрофон гарнитуры","windows не видит микрофон"],
+      "platform":["Windows 11","Windows 10"],
+      "source":"https://support.microsoft.com/en-us/windows/hardware/drivers/fix-microphone-problems",
+      "official_sequence":[
+        "Проверить Privacy & security > Microphone: Microphone access и доступ приложений",
+        "Проверить физическую кнопку Mute и правильность подключения гарнитуры/микрофона",
+        "Для Bluetooth-гарнитуры проверить pairing/connection",
+        "Settings > System > Sound > Input: выбрать правильное устройство",
+        "Запустить встроенный Microphone test и прослушать/оценить запись",
+        "Запустить Recording Audio/Input troubleshooter",
+        "Если Windows вообще не определяет устройство — только затем переходить к драйверам",
+        "При необходимости переустановить/обновить аудиодрайвер и перезагрузить"
+      ],
+      "routing":[
+        {"if":"microphone works in Windows test but not one app","then":"app-specific microphone permissions/settings"},
+        {"if":"microphone detected but very quiet","then":"microphone-level branch"},
+        {"if":"microphone/headset not detected at all","then":"connection then driver branch"},
+        {"if":"Bluetooth microphone","then":"Bluetooth connection branch before audio driver changes"}
+      ],
+      "novice_policy":["Не начинать с Device Manager","Сначала проверить Mute и выбранный Input","Просить пользователя выполнить короткий тест записи","Не удалять все аудиоустройства без объяснения и подтверждения"],
+      "risk":{"permissions":"low","input_selection":"low","troubleshooter":"low","driver_uninstall":"medium"}
+    },
+    {
+      "id":"microphone-too-quiet",
+      "intent":["микрофон тихий","меня плохо слышно","очень тихий микрофон"],
+      "source":"https://support.microsoft.com/en-us/windows/hardware/drivers/fix-microphone-problems",
+      "sequence":["Проверить правильное подключение и положение микрофона","Settings > System > Sound > Input > выбрать микрофон","Запустить Microphone test","Проверить/увеличить Input volume","Повторить тест"],
+      "verify":"Попросить пользователя записать короткую фразу и прослушать результат."
+    }
+  ],
+  "engine_notes":[
+    "Не выдавать всю последовательность сразу: один шаг -> результат -> следующий шаг.",
+    "Если простая проверка локализует проблему в одном приложении, не продолжать системное вмешательство.",
+    "Любые удаления/откаты драйверов считать отдельным medium-risk этапом.",
+    "Windows 10 сохранять в индексе для существующих ПК, но учитывать окончание стандартной поддержки 14 октября 2025 года."
+  ]
+}
