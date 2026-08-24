@@ -5,6 +5,13 @@
     .footer .copy{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center}
     .sf-help-btn{bottom:42px!important}
     .sf-help-panel{bottom:102px!important}
+    .sf-bot{background:#eefbf4!important;color:#10231a!important;border:1px solid #b7e4c7!important}
+    .sf-bot b{color:#073b21!important}
+    .sf-bot .sf-tag{color:#047857!important}
+    .sf-secondary{background:#fff!important;color:#075b36!important;border:1px solid #86d5aa!important;box-shadow:0 1px 0 rgba(4,120,87,.06)}
+    .sf-secondary:hover{background:#e9f9f0!important;border-color:#34a66f!important}
+    .sf-primary{background:#087f5b!important;color:#fff!important}
+    .sf-help-form button{background:#087f5b!important;color:#fff!important}
     @media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}}
     @media(max-width:520px){.sf-help-btn{bottom:34px!important}.sf-help-panel{bottom:92px!important}}
   `;
