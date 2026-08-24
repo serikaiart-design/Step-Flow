@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-08-24",
+  "purpose": "Главный маршрутизатор знаний Step & Flow: превращает обычную фразу пользователя, код ошибки или результат диагностики в правильное дерево действий.",
+  "principles": {
+    "audience": "beginner",
+    "one_step_at_a_time": true,
+    "never_assume_user_knows_terms": true,
+    "diagnosis_before_repair": true,
+    "prefer_official_evidence": true,
+    "do_not_treat_error_code_as_final_diagnosis": true,
+    "ask_only_questions_that_change_next_step": true,
+    "preserve_user_files": true,
+    "dangerous_or_destructive_actions_require_explicit_consent": true
+  },
+  "knowledge_sources": [
+    {"id":"diagnostic-flows","path":"data/diagnostic-flows.json","role":"Основные пошаговые деревья решений","priority":1},
+    {"id":"microsoft-cases-01","path":"data/microsoft-case-index.json","role":"Официальные пользовательские сценарии Microsoft","priority":2},
+    {"id":"microsoft-cases-02","path":"data/microsoft-case-index-02.json","role":"Bluetooth, printer, boot, BSOD","priority":2},
+    {"id":"microsoft-cases-03","path":"data/microsoft-case-index-03.json","role":"Camera and microphone","priority":2},
+    {"id":"microsoft-cases-04","path":"data/microsoft-case-index-04.json","role":"USB, drivers, apps and recovery","priority":2},
+    {"id":"error-codes-01","path":"data/error-code-index-01.json","role":"Windows Update and Device Manager error codes","priority":1},
+    {"id":"error-codes-02","path":"data/error-code-index-02.json","role":"Device Manager, activation, BSOD and Event ID routing","priority":1},
+    {"id":"error-codes-03","path":"data/error-code-index-03.json","role":"Update/install and DNS/network routing","priority":1},
+    {"id":"tools","path":"data/tool-catalog.json","role":"Выбор подходящего диагностического инструмента","priority":3},
+    {"id":"source-index","path":"data/source-index.json","role":"Доверие к источникам и provenance","priority":4},
+    {"id":"knowledge","path":"data/knowledge.json","role":"Простые объяснения и пользовательские инструкции","priority":5}
+  ],
+  "input_extractors": {
+    "hex_error_code": "(?i)\\b0x[0-9a-f]{6,8}\\b",
+    "windows_install_code": "(?i)\\b0x[cC][0-9a-f]{7}\\b",
+    "stop_code_words": ["stop code","bsod","blue screen","синий экран","bugcheck","bug check"],
+    "device_manager_words": ["device manager","диспетчер устройств","code 10","код 10","code 43","код 43","code 28","код 28"],
+    "event_words": ["event id","идентификатор события","kernel-power","kernel power"],
+    "context_markers": ["после обновления","после установки","после драйвера","после падения","только в игре","только в одной программе","после включения","после сна"]
+  },
+  "routing_order": [
+    {"step":1,"name":"safety_gate","description":"Сначала определить физическую/данную опасность.","signals":["дым","запах гари","искрит","залил","жидкость","диск щелкает","важные файлы пропадают"],"action":"stop_and_escalate"},
+    {"step":2,"name":"exact_code","description":"Если пользователь дал код, искать точное совпадение во всех error-code-index прежде семантического поиска.","action":"route_error_code"},
+    {"step":3,"name":"explicit_symptom","description":"Если есть явный массовый симптом, найти соответствующий diagnostic flow.","action":"route_flow"},
+    {"step":4,"name":"device_or_app_scope","description":"Определить, проблема системная, конкретного устройства или одной программы.","action":"scope_problem"},
+    {"step":5,"name":"microsoft_case","description":"Сопоставить симптом с нормализованными Microsoft cases.","action":"route_microsoft_case"},
+    {"step":6,"name":"clarify","description":"Если уверенности недостаточно, задать один вопрос, который сильнее всего разделяет оставшиеся ветки.","action":"ask_discriminating_question"},
+    {"step":7,"name":"tool_selection","description":"Выбирать tool-catalog только после определения диагностической задачи.","action":"select_tool"},
+    {"step":8,"name":"evidence","description":"При конфликте решений выбрать более авторитетный и актуальный источник; форумный кейс не заменяет официальный источник без проверки.","action":"rank_evidence"}
+  ],
+  "symptom_routes": [
+    {"intent":"unexpected_restart","phrases":["сам перезагружается","сам выключается","внезапно выключается","перезапускается сам"],"target":"diagnostic-flows:unexpected-restart"},
+    {"intent":"bsod","phrases":["синий экран","blue screen","bsod","stop code","грустный смайлик"],"target":"diagnostic-flows:bsod"},
+    {"intent":"slow_pc","phrases":["тормозит","очень медленный","виснет","зависает","диск 100","долго думает"],"target":"diagnostic-flows:computer-slow"},
+    {"intent":"internet","phrases":["нет интернета","вайфай не работает","wifi не работает","сайты не открываются","нет сети"],"target":"diagnostic-flows:no-internet"},
+    {"intent":"disk","phrases":["диск пропадает","ssd тормозит","hdd тормозит","ошибка диска","диск щелкает","долго копирует"],"target":"diagnostic-flows:disk-health"},
+    {"intent":"audio","phrases":["нет звука","звук пропал","ничего не слышно","хрипит звук","звук тихий","наушники не слышно"],"target":"microsoft-cases-01:audio"},
+    {"intent":"bluetooth","phrases":["bluetooth не работает","блютуз не работает","не видит bluetooth","не подключаются наушники"],"target":"microsoft-cases-02:bluetooth"},
+    {"intent":"printer","phrases":["принтер не печатает","не видит принтер","принтер offline","принтер офлайн"],"target":"microsoft-cases-02:printer"},
+    {"intent":"camera","phrases":["камера не работает","веб камера не работает","черный экран камеры","не видит камеру"],"target":"microsoft-cases-03:camera"},
+    {"intent":"microphone","phrases":["микрофон не работает","меня не слышно","микрофон тихий","нет микрофона"],"target":"microsoft-cases-03:microphone"},
+    {"intent":"usb","phrases":["usb не работает","флешку не видит","устройство usb не распознано","usb device not recognized"],"target":"microsoft-cases-04:usb"},
+    {"intent":"app_problem","phrases":["программа не запускается","приложение не открывается","программа вылетает","не могу удалить программу","не устанавливается программа"],"target":"microsoft-cases-04:apps"},
+    {"intent":"windows_boot","phrases":["windows не загружается","не грузится windows","черный экран после включения","зациклилась загрузка"],"target":"microsoft-cases-02:boot"},
+    {"intent":"windows_update","phrases":["windows update ошибка","обновление не устанавливается","не обновляется windows","ошибка обновления"],"target":"microsoft-cases-01:windows-update"},
+    {"intent":"recovery","phrases":["восстановить windows","сбросить windows","reset this pc","windows recovery","откатить систему"],"target":"microsoft-cases-04:recovery"}
+  ],
+  "scope_questions": [
+    {"when":"network_unknown_scope","question":"На телефоне, подключённом к тому же Wi-Fi, интернет работает?","branches":{"yes":"computer_only","no":"router_or_provider","unknown":"router_or_provider_check"}},
+    {"when":"audio_or_camera_or_mic","question":"Проблема есть во всех программах или только в одной?","branches":{"all":"system_or_device","one":"app_specific","unknown":"test_with_windows_builtin_app"}},
+    {"when":"usb_device","question":"Это устройство работает в другом USB-разъёме?","branches":{"yes":"port_or_controller","no":"device_or_driver","unknown":"try_safe_port_test"}},
+    {"when":"crash","question":"Перед сбоем был синий экран?","branches":{"yes":"bsod","no":"unexpected_restart","unknown":"reliability_monitor"}}
+  ],
+  "confidence": {
+    "exact_code_plus_context": 0.95,
+    "exact_code_only": 0.85,
+    "strong_symptom_match": 0.80,
+    "multiple_symptom_match": 0.70,
+    "weak_match": 0.50,
+    "threshold_for_direct_route": 0.75,
+    "below_threshold_action": "ask_one_question"
+  },
+  "response_contract": {
+    "first_response_max_actions": 1,
+    "explain_why_briefly": true,
+    "avoid_jargon_or_explain_it": true,
+    "offer_buttons_when_possible": ["Получилось","Не получилось","Не понимаю"],
+    "never_dump_tool_list": true,
+    "never_show_internal_confidence_score": true,
+    "never_show_internal_source_priority": true,
+    "after_user_result": "continue_from_current_node_not_restart_flow"
+  },
+  "safety": {
+    "never_auto_run": ["format","diskpart clean","Remove everything","BIOS flash","firmware flash","Driver Verifier","registry bulk cleaner","unknown debloat script","stress test"],
+    "require_backup_before": ["reset Windows","reinstall Windows","partition changes","filesystem repair when disk health is suspect"],
+    "require_explicit_consent_before": ["DISM repair","SFC repair","driver uninstall","driver rollback","network reset","app reset","system restore","Windows reset"],
+    "hardware_stop_signals": ["smoke","burning smell","sparks","liquid ingress","mechanical clicking from storage"]
+  }
+}
