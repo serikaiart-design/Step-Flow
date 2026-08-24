@@ -1,0 +1,46 @@
+{
+  "version":"1.0.0",
+  "updated":"2026-08-24",
+  "purpose":"Step & Flow routing index for Windows Update/install and network/DNS symptoms. Codes route to a diagnostic family; they are not treated as a diagnosis.",
+  "policy":{"one_step_at_a_time":true,"code_is_not_diagnosis":true,"prefer_official_source":true,"prefer_read_only_checks":true,"changes_require_context":true,"novice_mode":true},
+  "families":[
+    {"id":"windows-update","codes":[
+      {"code":"0x8007000D","meaning":"Windows Update files/cache may be damaged","first":"Run Windows Update troubleshooter","then":["inspect update result","only then consider cache/service repair"],"risk":"medium"},
+      {"code":"0x80070005","meaning":"Access denied / insufficient permissions","first":"Confirm the account has administrator access","then":["retry update","investigate security software only if evidence points there"],"risk":"medium"},
+      {"code":"0x80070002","meaning":"Update failed to install","first":"Restart Windows and retry","then":["Windows Update troubleshooter","service/cache branch if still failing"],"risk":"low-to-medium"},
+      {"code":"0x80070003","meaning":"Update installation/path related failure","first":"Restart and run Windows Update troubleshooter","risk":"low"},
+      {"code":"0x80070057","meaning":"Invalid parameter; can occur in update/install workflows","first":"Check free disk space and run the appropriate troubleshooter","then":["storage health branch if indicated","update component repair only after basic checks"],"risk":"medium"},
+      {"code":"0x800705B4","meaning":"Update timed out or was interrupted","first":"Check connectivity, restart, and retry","risk":"low"},
+      {"code":"0x80248014","meaning":"Windows Update database/service problem","first":"Check Windows Update service/troubleshooter","risk":"medium"},
+      {"code":"0x80072F8F","meaning":"Secure connection can fail when date/time/time zone is wrong","first":"Check date, time, time zone and time synchronization","risk":"low"},
+      {"code":"0xC1900101","meaning":"Upgrade failure commonly associated with a driver","first":"Route to upgrade-driver compatibility diagnostics","then":["Windows Update","OEM drivers/firmware","remove unnecessary external devices if appropriate"],"risk":"medium"}
+    ]},
+    {"id":"network-dns","symptoms":["site name does not resolve","DNS error","server DNS address could not be found","some sites do not open","internet works by IP but not by name"],"sequence":[
+      {"step":1,"action":"Determine scope: one site, all sites, one PC, or all devices","risk":"none"},
+      {"step":2,"action":"Inspect current IP configuration; do not change it yet","command":"ipconfig /all","risk":"low"},
+      {"step":3,"action":"Check whether the client has a plausible IP address, gateway and configured DNS servers","risk":"low"},
+      {"step":4,"action":"Test name resolution with nslookup for a public hostname","example":"nslookup bing.com","risk":"low"},
+      {"step":5,"action":"If evidence points to stale client DNS cache, clear only the DNS cache","command":"ipconfig /flushdns","risk":"low","requires_change_confirmation":true},
+      {"step":6,"action":"If DHCP configuration is invalid, route to DHCP renewal; do not renew a statically configured business PC blindly","command":"ipconfig /renew","risk":"medium","requires_change_confirmation":true},
+      {"step":7,"action":"Full network reset/netsh reset remains a late-stage branch, never the first response","risk":"medium-high"}
+    ]},
+    {"id":"windows-install-upgrade","codes":[
+      {"code":"0x80070057","route":"space-disk-update-components","novice_message":"Windows reports an invalid parameter. First we will check simple causes such as free space and the update state."},
+      {"code":"0x80072F8F","route":"date-time-secure-connection","novice_message":"First check the computer's date, time and time zone. Incorrect time can prevent a secure Windows connection."},
+      {"code":"0xC1900101","route":"driver-upgrade","novice_message":"This family often points to a driver problem during an upgrade. We will identify the device/driver before changing anything."}
+    ]}
+  ],
+  "router_rules":[
+    {"pattern":"0x[0-9A-Fa-f]{8}","action":"normalize uppercase and exact-match known code; if unknown, route by surrounding words before web/evidence lookup"},
+    {"pattern":"DNS|name.*resolve|server.*not.*found","action":"route network-dns"},
+    {"pattern":"update|обновлен|центр обновления","action":"prefer windows-update family"},
+    {"pattern":"install|upgrade|установ|обновление версии","action":"consider windows-install-upgrade family"}
+  ],
+  "safety_notes":["Do not disable firewall/antivirus as a routine first step.","Do not delete SoftwareDistribution contents before simpler checks/troubleshooter and user confirmation.","Do not replace DNS servers just because a website fails once.","Do not run winsock/TCP-IP reset as the first network action.","For business/domain/static-IP devices, avoid DHCP/network changes without understanding configuration."],
+  "sources":[
+    {"name":"Microsoft Support — Troubleshoot problems updating Windows","url":"https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"},
+    {"name":"Microsoft Support — Windows upgrade and installation errors","url":"https://support.microsoft.com/windows/deployment/install-upgrade/get-help-with-windows-upgrade-and-installation-errors"},
+    {"name":"Microsoft Learn — ipconfig","url":"https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ipconfig"},
+    {"name":"Microsoft Learn — Troubleshooting DNS clients","url":"https://learn.microsoft.com/en-us/windows-server/networking/dns/troubleshoot/troubleshoot-dns-client"}
+  ]
+}
