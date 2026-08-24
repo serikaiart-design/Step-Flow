@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-08-24",
+  "purpose": "Roadmap for evidence-first Windows diagnostics and least-destructive recovery in Step & Flow.",
+  "principles": [
+    "FSM controls routing; AI interprets but does not authorize transitions.",
+    "Prefer structured Windows evidence over guesses from user wording.",
+    "Use Microsoft and Windows-native diagnostics before third-party tools when sufficient.",
+    "Escalate collection progressively and only when the previous level is insufficient.",
+    "Recovery always proceeds from least destructive to most destructive.",
+    "Preview/experimental Windows features must never be presented as universally available."
+  ],
+  "evidence_collectors": [
+    {"level":1,"id":"task_manager","signals":["CPU","RAM","Disk","Network","GPU","NPU when available","top process"],"user_visibility":"simple","risk":"none"},
+    {"level":1,"id":"get_help","signals":["supported troubleshooter result","recommended Windows action"],"risk":"low"},
+    {"level":2,"id":"reliability_history","signals":["application failures","Windows failures","update/install events","time correlation"],"risk":"none"},
+    {"level":2,"id":"device_manager","signals":["device presence","status","device error code","driver identity/version"],"risk":"none_when_read_only"},
+    {"level":2,"id":"wer_events","signals":["faulting application","faulting module","exception/bugcheck metadata","bucket when exposed"],"risk":"none_when_read_only"},
+    {"level":2,"id":"release_health","signals":["Windows build","installed KB","known issue","safeguard/mitigation","official resolution"],"risk":"none"},
+    {"level":3,"id":"powertoys","preferred_tools":["File Locksmith","Command Palette","Awake"],"rule":"Use only the module relevant to the active case; PowerToys is not a generic repair step.","risk":"low"},
+    {"level":3,"id":"sysinternals","preferred_tools":["Process Explorer","Process Monitor","Autoruns","TCPView","RAMMap","ProcDump","Handle"],"risk":"medium","audience":"guided_or_advanced"},
+    {"level":4,"id":"vendor_diagnostics","signals":["OEM hardware test","SSD health/firmware","driver/device-specific diagnostics"],"risk":"medium"},
+    {"level":5,"id":"etw_wpr","signals":["CPU scheduling","disk/network I/O","process/thread activity","latency","power/performance trace"],"risk":"advanced"},
+    {"level":5,"id":"etw_mcp","status":"preview_or_future_integration","rule":"Consume structured read-only trace evidence; AI conclusions remain hypotheses until supported by trace evidence."},
+    {"level":5,"id":"wpa_mcp","status":"preview_or_future_integration","rule":"Use for evidence-backed interactive trace analysis, never as autonomous destructive repair authority."},
+    {"level":5,"id":"windbg","signals":["dump analysis","stack","bugcheck context"],"risk":"advanced","rule":"Expert last; faulting module alone is not proof of root cause."}
+  ],
+  "known_issue_resolver": {
+    "input": ["windows_version","build","installed_KB","hardware_model","driver_name","driver_version","symptom_family","started_after_update"],
+    "source_priority": ["Windows Release Health","Microsoft Support/Learn","OEM/vendor support"],
+    "outputs": ["known_issue_match","confidence","official_mitigation","official_resolution","source","last_verified"],
+    "guard": "Never claim a known-issue match from symptom similarity alone; require compatible build/update/hardware evidence."
+  },
+  "recovery_ladder": [
+    {"rank":1,"id":"normal_repair","examples":["Get Help guided fix","app/device repair","known issue resolution"],"risk":"low"},
+    {"rank":2,"id":"component_repair","examples":["SFC when justified","DISM when justified"],"risk":"medium","gate":"explain_and_consent"},
+    {"rank":3,"id":"rollback_restore","examples":["driver rollback","uninstall problematic update","System Restore when applicable"],"risk":"medium_high","gate":"backup_and_consent"},
+    {"rank":4,"id":"recovery_environment","examples":["Startup Repair","Safe Mode","Windows Recovery Environment options"],"risk":"medium_high","gate":"case_specific"},
+    {"rank":5,"id":"point_in_time_or_equivalent","examples":["supported point-in-time recovery capabilities when available"],"risk":"high","gate":"availability_backup_consent"},
+    {"rank":6,"id":"reset_keep_files","examples":["Reset this PC with keep-files option when appropriate"],"risk":"high","gate":"explicit_data_and_app_loss_explanation"},
+    {"rank":7,"id":"cloud_rebuild","examples":["Cloud Rebuild only on supported Windows builds/devices"],"risk":"critical_data_loss","gate":"explicit_backup_verified_plus_explicit_consent","rule":"Never present preview/unsupported Cloud Rebuild as a normal universal recovery option."},
+    {"rank":8,"id":"clean_install_or_service","examples":["clean installation","qualified repair service/hardware isolation"],"risk":"critical","gate":"last_resort"}
+  ],
+  "future_local_ai": {
+    "role": "Optional local classification and explanation layer.",
+    "allowed": ["classify user response into state-approved enum","summarize structured evidence","explain a verified finding in beginner language"],
+    "forbidden": ["invent evidence","change FSM family/state directly","authorize destructive action","declare root cause without evidence"]
+  }
+}
