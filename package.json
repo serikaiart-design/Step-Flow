@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "npm run test:fsm && npm run test:fallback && npm run test:back && npm run test:brand",
+    "test": "npm run test:fsm && npm run test:fallback && npm run test:back && npm run test:brand && npm run test:p0",
     "test:fsm": "node tests/fsm-static-check.mjs",
     "test:fallback": "node tests/fallback-contract.test.mjs",
     "test:back": "node tests/back-navigation.test.mjs",
-    "test:brand": "node tests/assistant-brand.test.mjs"
+    "test:brand": "node tests/assistant-brand.test.mjs",
+    "test:p0": "node tests/p0-assistant-journeys.test.mjs"
   }
 }
