@@ -13,7 +13,16 @@
     .sf-primary{background:#087f5b!important;color:#fff!important}
     .sf-help-form button{background:#087f5b!important;color:#fff!important}
     #programs>.section-lead{display:none!important}
-    @media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}}
+    #problems.section{padding:20px 0 22px!important}
+    #problems .section-lead{margin:3px 0 14px!important}
+    #problems .problems{gap:10px!important}
+    #problems .problem{min-height:150px!important;padding:14px 16px 38px!important;border-radius:19px!important}
+    #problems .problem .picon{width:40px!important;height:40px!important;border-radius:12px!important;font-size:20px!important}
+    #problems .problem strong{margin-top:10px!important;font-size:15px!important}
+    #problems .problem span{margin-top:6px!important;font-size:12px!important;line-height:1.4!important}
+    #problems .steps{left:16px!important;bottom:11px!important;font-size:11px!important}
+    #problems .cta{margin-top:10px!important;padding:12px 18px!important;border-radius:17px!important}
+    @media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}#problems .problem{min-height:142px!important}}
     @media(max-width:520px){.sf-help-btn{bottom:46px!important}.sf-help-panel{bottom:104px!important}}
   `;
   document.head.appendChild(style);
