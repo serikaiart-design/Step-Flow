@@ -1,0 +1,97 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-08-24",
+  "purpose": "Нормализованный индекс официальных Microsoft troubleshooting cases для Step & Flow. Используется ботом как первичный evidence layer, а не как текст для прямого показа новичку.",
+  "policy": {
+    "authority": "primary",
+    "prefer_windows_11": true,
+    "windows_10_note": "Microsoft free support/security updates ended 2025-10-14; preserve Windows 10 instructions only when applicable.",
+    "transform_for_user": "one_step_at_a_time",
+    "do_not_copy_long_source_text": true,
+    "verify_after_each_fix": true,
+    "changes_need_confirmation": true
+  },
+  "cases": [
+    {
+      "id": "ms-audio-general",
+      "domain": "audio",
+      "symptoms": ["нет звука", "звук не работает", "не слышно", "пропал звук"],
+      "source_title": "Fix sound or audio problems in Windows",
+      "source_url": "https://support.microsoft.com/en-US/Windows/Hardware/Audio/fix-sound-or-audio-problems-in-windows",
+      "applies_to": ["Windows 11", "Windows 10"],
+      "official_order": ["Get Help audio troubleshooter", "check selected output device", "check cables/volume/hardware", "disable audio enhancements", "check sound settings", "driver/service steps when needed"],
+      "bot_first_question": "Звука нет вообще или только в одной программе?",
+      "safe_first_action": "Проверить выбранное устройство вывода и громкость.",
+      "branch_hints": {"one_app_only":"ms-audio-one-app","quiet":"ms-audio-low","crackling":"ms-audio-crackling","device_missing":"ms-audio-device-missing","after_update":"audio-driver-rollback-route"},
+      "confidence": "official-primary"
+    },
+    {
+      "id": "ms-audio-one-app",
+      "domain": "audio",
+      "symptoms": ["нет звука в программе", "в браузере нет звука", "системные звуки есть"],
+      "source_title": "Fix app audio not working while system sounds work in Windows",
+      "source_url": "https://support.microsoft.com/en-US/Windows/Hardware/audio/fix-app-audio-not-working-while-system-sounds-work-in-windows",
+      "official_order": ["check app volume in Volume mixer", "verify app output device", "restart Windows audio services", "update audio driver"],
+      "bot_first_question": "В других программах звук работает?",
+      "safe_first_action": "Открыть микшер громкости и проверить, не выключен ли звук именно у этой программы.",
+      "confidence": "official-primary"
+    },
+    {
+      "id": "ms-audio-low",
+      "domain": "audio",
+      "symptoms": ["тихий звук", "звук очень тихий", "низкая громкость"],
+      "source_title": "Fix low or quiet sound in Windows",
+      "source_url": "https://support.microsoft.com/en-US/Windows/Hardware/Audio/fix-low-or-quiet-sound-in-windows",
+      "official_order": ["check Volume mixer", "disable audio enhancements", "change audio format", "update/reinstall audio driver"],
+      "safe_first_action": "Проверить громкость системы и нужного приложения в микшере.",
+      "confidence": "official-primary"
+    },
+    {
+      "id": "ms-audio-crackling",
+      "domain": "audio",
+      "symptoms": ["звук хрипит", "треск в звуке", "искаженный звук"],
+      "source_title": "Fix distorted or crackling audio in Windows",
+      "source_url": "https://support.microsoft.com/en-US/Windows/hardware/audio/fix-distorted-or-crackling-audio-in-windows",
+      "official_order": ["disable audio enhancements", "change default audio format", "update/reinstall audio driver", "restart audio services"],
+      "safe_first_action": "Отключить аудиоулучшения и проверить звук.",
+      "confidence": "official-primary"
+    },
+    {
+      "id": "ms-audio-device-missing",
+      "domain": "audio",
+      "symptoms": ["нет устройства вывода", "динамики не определяются", "наушники не видит"],
+      "source_title": "Fix missing or undetected audio output device in Windows",
+      "source_url": "https://support.microsoft.com/en-us/windows/hardware/audio/fix-missing-or-undetected-audio-output-device-in-windows",
+      "official_order": ["check Device Manager", "enable/scan hardware", "install latest manufacturer driver", "run audio troubleshooter", "restart PC"],
+      "safe_first_action": "Проверить, отображается ли устройство в Диспетчере устройств; ничего не удалять.",
+      "confidence": "official-primary"
+    },
+    {
+      "id": "ms-wifi-general",
+      "domain": "network",
+      "symptoms": ["нет интернета", "wifi не работает", "wi-fi не подключается", "нет сети"],
+      "source_title": "Fix Wi-Fi connection issues in Windows",
+      "source_url": "https://support.microsoft.com/en-US/Windows/Experience/Connectivity-Networking/fix-wi-fi-connection-issues-in-windows",
+      "applies_to": ["Windows 11", "Windows 10"],
+      "official_order": ["Get Help Network and Internet troubleshooter", "check Wi-Fi connection status", "general Wi-Fi troubleshooting", "deeper adapter/IP/DNS steps only if needed"],
+      "bot_first_question": "На телефоне, подключённом к этому же Wi-Fi, интернет работает?",
+      "safe_first_action": "Определить, проблема только на ПК или во всей сети, затем проверить, включён ли Wi-Fi и к какой сети подключён компьютер.",
+      "guardrail": "Do not jump directly to netsh/network reset.",
+      "confidence": "official-primary"
+    },
+    {
+      "id": "ms-windows-update-general",
+      "domain": "windows-update",
+      "symptoms": ["не устанавливается обновление", "ошибка windows update", "обновление зависло", "windows не обновляется"],
+      "source_title": "Troubleshoot problems updating Windows",
+      "source_url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows",
+      "applies_to": ["Windows 11", "Windows 10"],
+      "official_order": ["Windows Update troubleshooter in Get Help", "identify specific common update problem/error", "apply problem-specific steps"],
+      "bot_first_question": "Показывает ли Windows код ошибки обновления?",
+      "safe_first_action": "Запустить официальный Windows Update troubleshooter и сохранить точный код/сообщение результата.",
+      "guardrail": "Do not delete update caches or modify services before simpler official diagnostics.",
+      "confidence": "official-primary"
+    }
+  ],
+  "next_domains": ["Bluetooth", "printing", "camera", "microphone", "USB", "startup/no-boot", "BSOD/stop-codes", "storage", "performance", "apps", "drivers", "activation", "security", "recovery"]
+}
