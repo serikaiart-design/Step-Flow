@@ -23,9 +23,9 @@ function boot(){
   const file=input.files&&input.files[0];if(!file)return;
   if(!TYPES.has(file.type)&&!file.type.startsWith('image/')){alert('Выберите изображение JPEG, PNG или WebP.');clear();return}
   if(file.size>MAX){alert('Изображение слишком большое. Максимальный размер — 10 МБ.');clear();return}
-  if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);img.src=url;name.textContent=file.name||'Изображение';meta.textContent=(file.size/1024/1024).toFixed(1)+' МБ · готово к анализу';preview.classList.add('show');
+  if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);img.src=url;name.textContent=file.name||'Изображение';meta.textContent=(file.size/1024/1024).toFixed(1)+' МБ · изображение выбрано';preview.classList.add('show');
   window.StepFlowImage={file,status:'selected',selectedAt:Date.now()};
-  const chat=panel.querySelector('.sf-help-chat');if(chat){const d=document.createElement('div');d.className='sf-msg sf-bot';d.innerHTML='<b>Изображение выбрано.</b><br>Сейчас фото остаётся только в вашем браузере. Модуль распознавания будет подключён через защищённый сервер — API-ключ в GitHub Pages хранить не будем.<div class="sf-note">Пока можете дополнительно написать, что произошло и что видно на экране.</div>';chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+  const text=panel.querySelector('.sf-help-form input');if(text){text.placeholder='Коротко напишите, что произошло на экране';text.focus()}
  };
  return true;
 }
