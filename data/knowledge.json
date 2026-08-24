@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "updated": "2026-08-24",
   "rules": {
     "source_policy": "Использовать только материалы Step & Flow и официальные ссылки, указанные в библиотеке.",
@@ -7,7 +7,8 @@
     "safety": "Сначала диагностика без изменений системы. Перед любым исправлением показать, что будет сделано, уровень риска и запросить подтверждение пользователя.",
     "fallback": "Если ответа в библиотеке нет — честно сказать об этом. Не выдумывать инструкции.",
     "repair_policy": "Не запускать сторонние ремонтные утилиты автоматически. Сначала использовать встроенные средства Windows.",
-    "diagnostic_claim_policy": "Результат диагностической утилиты считать подсказкой, а не доказанной причиной. Не называть драйвер виновником только потому, что он присутствует в стеке сбоя."
+    "diagnostic_claim_policy": "Результат диагностической утилиты считать подсказкой, а не доказанной причиной. Не называть драйвер виновником только потому, что он присутствует в стеке сбоя.",
+    "stress_test_policy": "Нагрузочные тесты не запускать автоматически. Перед тестом объяснить, что температура и энергопотребление могут заметно вырасти, и запросить подтверждение пользователя."
   },
   "tools": [
     {
@@ -30,7 +31,42 @@
       "official_url": "https://www.resplendence.com/whocrashed",
       "automatic_run": false,
       "risk": "low",
-      "interpretation_rule": "Заключение является диагностической гипотезой. WhoCrashed сам предупреждает, что не всегда может точно определить первопричину."
+      "interpretation_rule": "Заключение является диагностической гипотезой и не считается окончательным доказательством причины."
+    },
+    {
+      "id": "windbg",
+      "name": "WinDbg",
+      "vendor": "Microsoft",
+      "type": "official_advanced_diagnostic",
+      "purpose": "Глубокий анализ crash dump-файлов, стека вызовов, модулей и системных сбоев Windows.",
+      "official_url": "https://learn.microsoft.com/windows-hardware/drivers/debugger/",
+      "automatic_run": false,
+      "risk": "low",
+      "audience": "advanced_or_assisted",
+      "interpretation_rule": "Использовать для углублённого анализа, когда BlueScreenView или WhoCrashed не дают достаточно ясного ответа. Результат объяснять пользователю простыми словами."
+    },
+    {
+      "id": "crystaldiskinfo",
+      "name": "CrystalDiskInfo",
+      "vendor": "Crystal Dew World",
+      "type": "third_party_diagnostic",
+      "purpose": "Показывает состояние накопителя и данные SMART для HDD/SSD/NVMe.",
+      "official_url": "https://crystalmark.info/en/software/crystaldiskinfo/",
+      "automatic_run": false,
+      "risk": "low",
+      "interpretation_rule": "Статусы Caution/Bad считать поводом срочно сделать резервную копию и продолжить диагностику, а не гарантированным прогнозом отказа."
+    },
+    {
+      "id": "occt",
+      "name": "OCCT",
+      "vendor": "OCBASE",
+      "type": "third_party_stress_test",
+      "purpose": "Нагрузочное тестирование CPU, GPU, памяти, VRAM и питания для поиска нестабильности под нагрузкой.",
+      "official_url": "https://www.ocbase.com/occt",
+      "automatic_run": false,
+      "risk": "high",
+      "requires_user_confirmation": true,
+      "interpretation_rule": "Использовать только после базовой диагностики. Перед запуском предупредить о высокой нагрузке и росте температуры. Немедленно прекратить тест при перегреве, артефактах, запахе, отключениях или резком ухудшении стабильности."
     }
   ],
   "topics": [
@@ -81,46 +117,40 @@
       "first_step": "Если синий экран появляется снова, сфотографируйте его на телефон или запишите Stop code. Ничего удалять и переустанавливать пока не нужно.",
       "risk": "low",
       "workflow": [
-        {
-          "step": 1,
-          "type": "collect",
-          "question": "Какой Stop code или код 0x... показан на синем экране?",
-          "changes_system": false
-        },
-        {
-          "step": 2,
-          "type": "diagnostic",
-          "instruction": "Проверьте, есть ли файлы дампа после сбоя. Если обычному пользователю это сложно, предложите BlueScreenView или WhoCrashed только с официальной страницы.",
-          "changes_system": false,
-          "risk": "low"
-        },
-        {
-          "step": 3,
-          "type": "interpret",
-          "instruction": "Получите Bug Check Code и имя подозреваемого драйвера/модуля. Объясните результат простыми словами. Не утверждайте, что найденный модуль точно является причиной.",
-          "changes_system": false
-        },
-        {
-          "step": 4,
-          "type": "verify_driver",
-          "instruction": "Если анализ указывает на сторонний драйвер, сначала определите устройство и производителя. Обновление предлагайте только с Windows Update или официального сайта производителя.",
-          "changes_system": false
-        },
-        {
-          "step": 5,
-          "type": "repair_gate",
-          "instruction": "Перед обновлением, откатом или удалением драйвера объясните действие и запросите подтверждение пользователя.",
-          "requires_user_confirmation": true,
-          "risk": "medium"
-        },
-        {
-          "step": 6,
-          "type": "verify",
-          "question": "После перезагрузки синий экран появился снова?",
-          "answers": ["Нет", "Да"]
-        }
+        {"step": 1, "type": "collect", "question": "Какой Stop code или код 0x... показан на синем экране?", "changes_system": false},
+        {"step": 2, "type": "diagnostic", "instruction": "Проверьте crash dump. Для простого анализа предложите BlueScreenView или WhoCrashed. Если ответ неоднозначный — WinDbg.", "changes_system": false, "risk": "low"},
+        {"step": 3, "type": "interpret", "instruction": "Получите Bug Check Code и имя подозреваемого драйвера/модуля. Объясните результат простыми словами. Не утверждайте, что найденный модуль точно является причиной.", "changes_system": false},
+        {"step": 4, "type": "verify_driver", "instruction": "Если анализ указывает на сторонний драйвер, сначала определите устройство и производителя. Обновление предлагайте только через Windows Update или официальный сайт производителя.", "changes_system": false},
+        {"step": 5, "type": "repair_gate", "instruction": "Перед обновлением, откатом или удалением драйвера объясните действие и запросите подтверждение пользователя.", "requires_user_confirmation": true, "risk": "medium"},
+        {"step": 6, "type": "verify", "question": "После перезагрузки синий экран появился снова?", "answers": ["Нет", "Да"]}
       ],
-      "recommended_tools": ["bluescreenview", "whocrashed"]
+      "recommended_tools": ["bluescreenview", "whocrashed", "windbg"]
+    },
+    {
+      "id": "disk-health",
+      "title": "Проверка здоровья SSD/HDD",
+      "keywords": ["диск тормозит", "ssd умирает", "hdd умирает", "ошибка диска", "smart", "crystaldiskinfo", "щелкает диск", "долго копируются файлы"],
+      "first_step": "Сначала сохраните важные файлы, если диск ведёт себя необычно. Затем можно проверить состояние накопителя в CrystalDiskInfo.",
+      "risk": "low",
+      "workflow": [
+        {"step": 1, "type": "safety", "instruction": "Если есть важные данные и появились щелчки, пропадание диска или ошибки чтения — сначала резервная копия, потом диагностика."},
+        {"step": 2, "type": "diagnostic", "tool": "CrystalDiskInfo", "changes_system": false, "risk": "low"},
+        {"step": 3, "type": "interpret", "instruction": "Считать Good нормальным индикатором, Caution/Bad — поводом сохранить данные и продолжить проверку. Не обещать точный срок жизни диска."}
+      ],
+      "recommended_tools": ["crystaldiskinfo"]
+    },
+    {
+      "id": "hardware-instability",
+      "title": "Компьютер выключается или зависает под нагрузкой",
+      "keywords": ["выключается в игре", "перезагружается под нагрузкой", "артефакты", "перегрев", "occt", "вылетает в игре", "нагрузка gpu", "нагрузка cpu"],
+      "first_step": "Сначала проверьте температуры и историю сбоев. Нагрузочный тест пока не запускайте.",
+      "risk": "high",
+      "workflow": [
+        {"step": 1, "type": "diagnostic", "instruction": "Проверить температуры, Монитор устойчивости и состояние диска без создания дополнительной нагрузки.", "risk": "low"},
+        {"step": 2, "type": "stress_test_gate", "tool": "OCCT", "instruction": "Предлагать OCCT только если базовая диагностика не выявила причину и пользователь понимает, что тест создаст высокую нагрузку.", "requires_user_confirmation": true, "risk": "high"},
+        {"step": 3, "type": "stop_conditions", "instruction": "Немедленно прекратить тест при перегреве, артефактах, запахе, отключении питания или резком ухудшении работы."}
+      ],
+      "recommended_tools": ["occt"]
     },
     {
       "id": "system-files-damaged",
