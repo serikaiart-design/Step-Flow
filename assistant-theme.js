@@ -12,10 +12,14 @@
     .sf-secondary:hover{background:#e9f9f0!important;border-color:#34a66f!important}
     .sf-primary{background:#087f5b!important;color:#fff!important}
     .sf-help-form button{background:#087f5b!important;color:#fff!important}
+    #programs>.section-lead{display:none!important}
     @media(max-width:650px){.footer-inner{align-items:center;padding-bottom:18px}.footer-nav{justify-content:center}.footer .copy{position:static;transform:none;width:100%;text-align:center;margin-top:8px}}
     @media(max-width:520px){.sf-help-btn{bottom:46px!important}.sf-help-panel{bottom:104px!important}}
   `;
   document.head.appendChild(style);
+
+  const programsTitle=document.querySelector('#programs h2');
+  if(programsTitle) programsTitle.textContent='Рекомендуемые к установке программы';
 
   const apply=()=>{
     const btn=document.querySelector('.sf-help-btn');
