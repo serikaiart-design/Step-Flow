@@ -1,0 +1,147 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-08-24",
+  "purpose": "Индекс источников Step & Flow. Используется ботом и процессом пополнения базы для определения доверия, области знаний и порядка проверки решений.",
+  "ranking": [
+    "microsoft_support",
+    "microsoft_learn_windows_client",
+    "microsoft_sysinternals",
+    "device_vendor_official",
+    "software_vendor_official",
+    "trusted_catalog",
+    "expert_community",
+    "community_case"
+  ],
+  "rules": {
+    "official_first": true,
+    "community_never_overrides_official_without_reason": true,
+    "preserve_windows_version": true,
+    "preserve_date": true,
+    "preserve_error_code": true,
+    "community_solution_requires_validation": true,
+    "novice_output": "Никогда не копировать техническую статью пользователю целиком. Преобразовать в один понятный безопасный шаг и проверить результат.",
+    "conflict_policy": "Если источники противоречат друг другу, не выбирать молча. Повысить вес актуального официального источника; сохранить конфликт для экспертной проверки."
+  },
+  "sources": [
+    {
+      "id":"ms-windows-troubleshooting",
+      "tier":"microsoft_learn_windows_client",
+      "name":"Microsoft Learn — Windows troubleshooting",
+      "url":"https://learn.microsoft.com/en-us/troubleshoot/windows/",
+      "trust":"primary",
+      "use_for":["профессиональные сценарии Windows","Windows Client","performance","networking","security","storage","printing","applications"],
+      "bot_use":"Извлекать симптомы, предварительные условия, диагностическую последовательность, команды, ожидаемые результаты и точки эскалации."
+    },
+    {
+      "id":"ms-get-help-troubleshooters",
+      "tier":"microsoft_support",
+      "name":"Microsoft Support — Windows troubleshooters / Get Help",
+      "url":"https://support.microsoft.com/en-us/support/get-help/windows-troubleshooters",
+      "trust":"primary",
+      "use_for":["audio","BITS","Bluetooth","camera","network and internet","printer","program compatibility","video playback","Windows Update"],
+      "bot_use":"Если подходящий встроенный troubleshooter доступен, рассматривать его как ранний безопасный шаг до сторонних утилит."
+    },
+    {
+      "id":"ms-support-windows",
+      "tier":"microsoft_support",
+      "name":"Microsoft Support — Windows",
+      "url":"https://support.microsoft.com/windows",
+      "trust":"primary",
+      "use_for":["простые пользовательские инструкции","Windows 10","Windows 11","устройства","сеть","обновления","восстановление"],
+      "bot_use":"Основной источник для преобразования официальной процедуры в пошаговую инструкцию новичку."
+    },
+    {
+      "id":"ms-sysinternals",
+      "tier":"microsoft_sysinternals",
+      "name":"Microsoft Sysinternals",
+      "url":"https://learn.microsoft.com/sysinternals/",
+      "trust":"primary",
+      "use_for":["Process Explorer","Process Monitor","Autoruns","ProcDump","RAMMap","TCPView","Handle","advanced diagnostics"],
+      "bot_use":"Использовать только после более простых встроенных проверок, если конкретный сценарий требует глубокого анализа."
+    },
+    {
+      "id":"softpedia",
+      "tier":"trusted_catalog",
+      "name":"Softpedia",
+      "url":"https://www.softpedia.com/",
+      "trust":"discovery_only",
+      "use_for":["поиск кандидатов программ","версии","категории утилит"],
+      "bot_use":"Не считать описания доказательством. После обнаружения кандидата проверять официальный сайт разработчика."
+    },
+    {
+      "id":"softportal",
+      "tier":"trusted_catalog",
+      "name":"SoftPortal",
+      "url":"https://www.softportal.com/",
+      "trust":"discovery_only",
+      "use_for":["русскоязычный поиск программ","категории","кандидаты утилит"],
+      "bot_use":"Источник кандидатов, не источник истины. Отсекать устаревшие программы и агрессивные оптимизаторы."
+    },
+    {
+      "id":"reddit-techsupport",
+      "tier":"expert_community",
+      "name":"Reddit r/techsupport",
+      "url":"https://www.reddit.com/r/techsupport/",
+      "trust":"community",
+      "use_for":["редкие реальные случаи","BSOD","драйверы","Windows","hardware/software interactions"],
+      "bot_use":"Искать повторяющиеся паттерны и редкие случаи. Не выполнять совет одного пользователя без независимой проверки."
+    },
+    {
+      "id":"cyberforum",
+      "tier":"expert_community",
+      "name":"CyberForum",
+      "url":"https://www.cyberforum.ru/computers/",
+      "trust":"community",
+      "use_for":["русскоязычные кейсы Windows и ПК","ошибки программ","администрирование"],
+      "bot_use":"Использовать для гипотез и локализованных кейсов; проверять команды и ремонтные действия по первичным источникам."
+    },
+    {
+      "id":"4pda-pc",
+      "tier":"expert_community",
+      "name":"4PDA — ПК",
+      "url":"https://4pda.to/forum/",
+      "trust":"community",
+      "use_for":["русскоязычные пользовательские кейсы","драйверы","Windows","совместимость"],
+      "bot_use":"Сохранять полезные повторяющиеся случаи, но не переносить твики/скрипты без проверки безопасности."
+    },
+    {
+      "id":"happypc",
+      "tier":"expert_community",
+      "name":"HappyPC Forum",
+      "url":"https://forum.happypc.ru/",
+      "trust":"community",
+      "use_for":["диагностика ПК","железо","пользовательские случаи"],
+      "bot_use":"Использовать как дополнительный источник практических гипотез."
+    },
+    {
+      "id":"majorgeeks-forum",
+      "tier":"expert_community",
+      "name":"MajorGeeks Forums",
+      "url":"https://forums.majorgeeks.com/",
+      "trust":"community",
+      "use_for":["Windows troubleshooting","malware cleanup history","software errors"],
+      "bot_use":"Исторические решения проверять на актуальность для текущих Windows; не переносить старые registry tweaks автоматически."
+    }
+  ],
+  "case_schema": {
+    "required_fields":["case_id","symptoms","environment","source_ids","confidence","questions","safe_checks","branches","resolution","verification"],
+    "optional_fields":["error_codes","event_ids","stop_codes","drivers","hardware","windows_build","known_bad_versions","screenshots","tool_refs","risk","last_verified"],
+    "confidence_levels":["official","multi_source_confirmed","probable","community_hypothesis","deprecated"],
+    "dedupe_key":"Нормализованные симптомы + версия Windows + код ошибки/события + устройство/драйвер, если применимо"
+  },
+  "ingestion_pipeline":[
+    "discover",
+    "extract_case",
+    "normalize_terms",
+    "identify_windows_version",
+    "identify_risk",
+    "cross_check_primary_source",
+    "deduplicate",
+    "assign_confidence",
+    "map_to_tool_catalog",
+    "map_to_diagnostic_flow",
+    "rewrite_for_novice",
+    "human_or_rule_validation_for_risky_actions",
+    "publish"
+  ]
+}
