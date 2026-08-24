@@ -1,0 +1,9 @@
+{
+  "name": "step-flow",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:fsm",
+    "test:fsm": "node tests/fsm-static-check.mjs"
+  }
+}
