@@ -1,4 +1,19 @@
 (()=>{
+  const problemsSec=document.querySelector('#problems');
+  if(problemsSec){
+    const lead=problemsSec.querySelector('.section-lead');if(lead)lead.textContent='Выберите проблему — начнём с самого безопасного и понятного действия.';
+    const data={
+      'windows-wont-start.html':['Компьютер не включается','Нет изображения, Windows не запускается, появился синий экран или компьютер завис при загрузке.'],
+      'program-not-installing.html':['Программа не устанавливается','Установка не запускается, появляется ошибка, код 0x… или программа не ставится до конца.'],
+      'no-internet.html':['Нет интернета','Не открываются сайты, пропал Wi‑Fi, нет подключения или интернет работает только на части устройств.'],
+      'computer-slow.html':['Компьютер тормозит','Windows долго загружается, программы зависают, диск загружен или компьютер внезапно стал медленным.'],
+      'something-stopped-working.html':['Что-то перестало работать','Пропал звук, не работает устройство или программа, появилась ошибка после обновления или изменения.'],
+      'windows-after-install.html':['Только установили Windows','Обновления, драйверы, системные компоненты и базовая проверка после чистой установки Windows.']
+    };
+    problemsSec.querySelectorAll('.problem').forEach(card=>{const href=(card.getAttribute('href')||'').split('/').pop();if(data[href]){const strong=card.querySelector('strong'),span=card.querySelector('span');if(strong)strong.textContent=data[href][0];if(span)span.textContent=data[href][1]}const old=card.querySelector('.steps');if(old){old.textContent='Открыть →';old.classList.remove('steps');old.classList.add('open')}});
+    const cta=problemsSec.querySelector('.cta');if(cta)cta.innerHTML='<strong>Не нашли свою проблему?</strong> Опишите её обычными словами или приложите фото/скриншот — Помощник поможет определить, с чего начать. <a href="#faq">Задать вопрос</a>';
+    const st=document.createElement('style');st.textContent='#problems .problem .open{position:absolute;left:18px;bottom:11px;font-size:11px;font-weight:850;color:var(--accent)}';document.head.appendChild(st);
+  }
   const sec=document.querySelector('#programs'); if(!sec)return; const acc=sec.querySelector('.accordions');
   const makeFold=(cls,title,note,body)=>{const d=document.createElement('details');d.className='sf-fold '+cls;d.innerHTML=`<summary>${title}</summary><div class="sf-fold-body"><p class="sf-fold-note">${note}</p>${body}</div>`;return d};
   const cards=items=>`<div class="sf-component-grid">${items.map(x=>`<div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=${x[2]}&sz=128" alt="${x[0]}"></div><div><strong>${x[0]}</strong><span>${x[1]}</span>${x[4]?`<span style="display:block;margin-top:8px;color:#9a5b12">${x[4]}</span>`:''}<a href="${x[3]}" target="_blank" rel="noopener">${x[5]||'Открыть →'}</a></div></div>`).join('')}</div>`;
