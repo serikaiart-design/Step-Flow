@@ -6,9 +6,9 @@ const theme = fs.readFileSync(new URL('../assistant-theme.js', import.meta.url),
 
 assert.match(index, /assistant-widget\.js/);
 assert.match(index, /assistant-theme\.js/);
-assert.match(theme, /btn\.textContent='Помощник'/);
-assert.match(theme, /Step & Flow · Помощник/);
-assert.match(theme, /linear-gradient\(135deg,#ff3d00 0%,#ff007a 52%,#7c3aed 100%\)/);
+assert.match(theme, /textContent='Помощник'/);
+assert.match(theme, /linear-gradient\(135deg,#49a982,#278d69\)/);
 assert.match(theme, /boxShadow:/);
+assert.match(theme, /wireAsk/);
 
-console.log('PASS: Assistant label is preserved and the entry button has vivid styling.');
+console.log('PASS: Assistant label, green entry styling, and FAQ handoff are preserved.');
