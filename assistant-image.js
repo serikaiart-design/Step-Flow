@@ -17,15 +17,15 @@ function boot(){
  panel.insertBefore(tools,form);panel.insertBefore(preview,form);
  const pick=tools.querySelector('.sf-image-pick'),input=tools.querySelector('input'),img=preview.querySelector('img'),name=preview.querySelector('b'),meta=preview.querySelector('span'),remove=preview.querySelector('.sf-image-remove');
  let url='';
- const clear=()=>{if(url)URL.revokeObjectURL(url);url='';input.value='';preview.classList.remove('show');img.removeAttribute('src');window.StepFlowImage=null};
+ const clear=()=>{if(url)URL.revokeObjectURL(url);url='';input.value='';preview.classList.remove('show');img.removeAttribute('src');window.StepFlowImage=null;const text=panel.querySelector('.sf-help-form input');if(text)text.placeholder='Что случилось?'};
  pick.onclick=()=>input.click();remove.onclick=clear;
  input.onchange=()=>{
   const file=input.files&&input.files[0];if(!file)return;
   if(!TYPES.has(file.type)&&!file.type.startsWith('image/')){alert('Выберите изображение JPEG, PNG или WebP.');clear();return}
   if(file.size>MAX){alert('Изображение слишком большое. Максимальный размер — 10 МБ.');clear();return}
-  if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);img.src=url;name.textContent=file.name||'Изображение';meta.textContent=(file.size/1024/1024).toFixed(1)+' МБ · изображение выбрано';preview.classList.add('show');
+  if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);img.src=url;name.textContent=file.name||'Изображение';meta.textContent=(file.size/1024/1024).toFixed(1)+' МБ · готово к локальному OCR';preview.classList.add('show');
   window.StepFlowImage={file,status:'selected',selectedAt:Date.now()};
-  const text=panel.querySelector('.sf-help-form input');if(text){text.placeholder='Коротко напишите, что произошло на экране';text.focus()}
+  const text=panel.querySelector('.sf-help-form input');if(text){text.placeholder='Необязательно: что происходило перед ошибкой?';text.focus()}
  };
  return true;
 }
