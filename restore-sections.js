@@ -13,8 +13,14 @@
     sec.insertBefore(makeFold('sf-components-fold','Системные компоненты','Устанавливайте только при необходимости — если программа или игра требует конкретный компонент.',body),acc||null);
   }
   if(!sec.querySelector('.sf-utilities-fold')){
-    const items=[['VirusTotal','Проверка подозрительных файлов, ссылок и сайтов по результатам множества средств анализа. Полезно перед запуском неизвестного файла. Не загружайте конфиденциальные документы.','virustotal.com','https://www.virustotal.com/gui/home/'],['iLovePDF','Онлайн-инструменты для PDF: объединить, разделить, сжать, конвертировать, редактировать, распознать текст и восстановить PDF. Для конфиденциальных документов лучше использовать локальные инструменты.','ilovepdf.com','https://www.ilovepdf.com/ru']];
+    const items=[
+      ['VirusTotal','Проверяет подозрительные файлы, ссылки и сайты с помощью множества средств анализа. Полезно перед запуском неизвестного файла. Не загружайте конфиденциальные документы.','virustotal.com','https://www.virustotal.com/gui/home/'],
+      ['iLovePDF','Набор онлайн-инструментов для PDF: объединить, разделить, сжать, конвертировать и редактировать документы. Для конфиденциальных файлов лучше использовать локальные инструменты.','ilovepdf.com','https://www.ilovepdf.com/ru'],
+      ['TinyPNG / Tinify','Умно сжимает PNG, JPEG, WebP и AVIF, уменьшая размер изображений с минимально заметной потерей качества. Удобно перед отправкой фото и для подготовки изображений к сайту.','tinypng.com','https://tinypng.com/'],
+      ['Speedtest by Ookla','Проверяет скорость загрузки и отдачи данных, а также задержку интернет-соединения. Полезно, когда интернет медленный, нестабильный или нужно проверить качество подключения.','speedtest.net','https://www.speedtest.net/'],
+      ['Remove.bg','Автоматически удаляет фон с фотографии и создаёт изображение с прозрачным фоном. Удобно для товаров, документов, презентаций, аватаров и дизайна.','remove.bg','https://www.remove.bg/']
+    ];
     const body=`<div class="sf-component-grid">${items.map(x=>`<div class="sf-component searchable"><div class="sf-component-icon"><img src="https://www.google.com/s2/favicons?domain=${x[2]}&sz=128" alt="${x[0]}"></div><div><strong>${x[0]}</strong><span>${x[1]}</span><a href="${x[3]}" target="_blank" rel="noopener">Открыть →</a></div></div>`).join('')}</div>`;
-    const fold=makeFold('sf-utilities-fold','Полезности','Полезные онлайн-сервисы, которые не нужно устанавливать на компьютер.',body);fold.style.background='linear-gradient(135deg,#fff8ed,#fffdf8)';fold.style.borderColor='rgba(225,145,45,.20)';sec.insertBefore(fold,acc||null);
+    const fold=makeFold('sf-utilities-fold','Полезности','Бесплатные и условно-бесплатные онлайн-сервисы для повседневных задач. Ничего устанавливать на компьютер не нужно.',body);fold.style.background='linear-gradient(135deg,#fff8ed,#fffdf8)';fold.style.borderColor='rgba(225,145,45,.20)';sec.insertBefore(fold,acc||null);
   }
 })();
