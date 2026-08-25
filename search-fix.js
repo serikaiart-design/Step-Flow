@@ -8,6 +8,18 @@ const routes=[
  {href:'something-stopped-working.html',keys:['что-то перестало работать','что то перестало работать','перестало работать','раньше работало теперь нет','сломалось','нет звука','устройство не работает','ошибка после обновления']},
  {href:'windows-after-install.html',keys:['только установили windows','только установил windows','после установки windows','после установки виндовс','новая windows','установил windows что дальше','драйверы после установки windows']}
 ];
+const cardCopy={
+ 'windows-wont-start.html':'Нет изображения, Windows не запускается, появился синий экран или компьютер завис при загрузке.',
+ 'program-not-installing.html':'Установка не запускается, появляется ошибка, код 0x… или программа не устанавливается до конца.',
+ 'no-internet.html':'Не открываются сайты, пропал Wi‑Fi, нет подключения или интернет работает только на части устройств.',
+ 'computer-slow.html':'Windows долго загружается, программы зависают, диск загружен или компьютер внезапно стал медленным.',
+ 'something-stopped-working.html':'Пропал звук, не работает устройство или программа, появилась ошибка после обновления или изменения.',
+ 'windows-after-install.html':'Обновления, драйверы, системные компоненты и базовая проверка после чистой установки Windows.'
+};
+Object.entries(cardCopy).forEach(([href,text])=>{const card=document.querySelector(`#problems a.problem[href="${href}"]`);if(!card)return;const desc=card.querySelector('span');if(desc)desc.textContent=text;const old=card.querySelector('.steps,.open');if(old){old.className='open';old.textContent='Открыть →'}});
+const lead=document.querySelector('#problems .section-lead');if(lead)lead.textContent='Выберите проблему — начнём с самого безопасного и понятного действия.';
+const cta=document.querySelector('#problems .cta');if(cta){const a=cta.querySelector('a');cta.childNodes.forEach(n=>{if(n.nodeType===3)n.remove()});const strong=cta.querySelector('strong');if(strong)strong.insertAdjacentText('afterend',' Опишите её обычными словами или приложите фото/скриншот — Помощник поможет определить, с чего начать. ');if(a)a.textContent='Задать вопрос'}
+const meta=document.querySelector('.meta');if(meta)meta.textContent='Обновлено: 25 августа 2026 · актуальные решения';
 const norm=s=>(s||'').toLowerCase().replace(/ё/g,'е').replace(/[.,!?;:()\[\]"']/g,' ').replace(/\s+/g,' ').trim();
 const routeByHref=href=>document.querySelector(`a[href="${href}"]`);
 function exactRoute(text){const s=norm(text);for(const r of routes){for(const k of r.keys){if(s===norm(k))return r}}return null}
