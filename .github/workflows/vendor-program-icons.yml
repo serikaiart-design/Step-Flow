@@ -1,0 +1,46 @@
+name: Vendor program icons
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  vendor-icons:
+    if: github.event.head_commit.message == 'Подготовить родные локальные значки'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download recognizable program icons
+        shell: python
+        run: |
+          import pathlib, urllib.parse, urllib.request
+          icons = {
+            "google-chrome":"google.com","7zip":"7-zip.org","potplayer":"potplayer.tv",
+            "adobe-reader":"adobe.com","microsoft-365":"microsoft.com","ncalayer":"pki.gov.kz",
+            "aida64":"aida64.com","crystaldiskinfo":"crystalmark.info","sdi":"sdi-tool.org",
+            "wise-disk":"wisecleaner.com","wise-registry":"wisecleaner.com","geek-uninstaller":"geekuninstaller.com",
+            "adwcleaner":"malwarebytes.com","anydesk":"anydesk.com","autoruns":"learn.microsoft.com",
+            "process-explorer":"learn.microsoft.com","windows11":"microsoft.com","windows10-ltsc":"learn.microsoft.com",
+            "rufus":"rufus.ie","directx":"microsoft.com","visual-cpp":"microsoft.com","webview2":"microsoft.com",
+            "java":"java.com","dotnet":"dotnet.microsoft.com","directx-2010":"microsoft.com",
+            "adblock-plus":"adblockplus.org","adblock":"getadblock.com","adguard":"adguard.com",
+            "google-docs":"docs.google.com","virustotal":"virustotal.com","ilovepdf":"ilovepdf.com",
+            "tinypng":"tinypng.com","speedtest":"speedtest.net","removebg":"remove.bg"
+          }
+          out = pathlib.Path("assets/program-icons")
+          out.mkdir(parents=True, exist_ok=True)
+          for slug, domain in icons.items():
+              url = "https://www.google.com/s2/favicons?domain=" + urllib.parse.quote(domain) + "&sz=128"
+              req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0"})
+              data = urllib.request.urlopen(req, timeout=30).read()
+              if len(data) < 100:
+                  raise RuntimeError(f"Icon download failed: {slug} ({len(data)} bytes)")
+              (out / f"{slug}.png").write_bytes(data)
+              print(slug, len(data))
+      - name: Commit local icon files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/program-icons
+          git commit -m "Добавить локальные значки программ [skip ci]"
+          git push
