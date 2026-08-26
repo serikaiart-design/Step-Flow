@@ -1,11 +1,20 @@
-# Step & Flow — TODO
+# Step-Flow by SK AI Art — TODO
 
-Updated: 2026-08-25
+Updated: 2026-08-26
+
+## Completed on 2026-08-26
+
+- Added baseline colloquial-Russian and typo normalization: «винда», «инет», «прога» and common variants.
+- Added multi-symptom detection with one primary-problem clarification instead of guessing.
+- Prevented free text inside an active case from becoming an invalid FSM state.
+- Preserved the original user problem, observations and error codes in the Assistant session.
+- Connected recognized BSOD codes to a saved recurrence flow that survives page refresh.
+- Added behavioral NLU regression tests to the required GitHub test suite.
 
 ## Highest priority
 
-- Improve natural-language understanding in the existing Assistant.
-- Connect BSOD/error-code knowledge directly into dialogue routing.
+- Extend entity extraction for Windows version, program, device, driver and BIOS/UEFI.
+- Extend recurring-BSOD routing toward protected crash-dump / WinDbg analysis.
 - Build a protected Vision/OCR backend for real screenshot/photo analysis.
 - Add confidence handling for OCR and code confirmation.
 - Add advanced recurring-BSOD flow using crash dumps / WinDbg.
