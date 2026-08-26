@@ -1,46 +1,66 @@
-name: Vendor program icons
+name: Vendor native program icons
 on:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
-  vendor-icons:
-    if: github.event.head_commit.message == 'Подготовить родные локальные значки'
+  vendor-native-icons:
+    if: github.event.head_commit.message == 'Заменить общие значки на родные'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download recognizable program icons
-        shell: python
+      - name: Extract native icons from official program files
         run: |
-          import pathlib, urllib.parse, urllib.request
-          icons = {
-            "google-chrome":"google.com","7zip":"7-zip.org","potplayer":"potplayer.tv",
-            "adobe-reader":"adobe.com","microsoft-365":"microsoft.com","ncalayer":"pki.gov.kz",
-            "aida64":"aida64.com","crystaldiskinfo":"crystalmark.info","sdi":"sdi-tool.org",
-            "wise-disk":"wisecleaner.com","wise-registry":"wisecleaner.com","geek-uninstaller":"geekuninstaller.com",
-            "adwcleaner":"malwarebytes.com","anydesk":"anydesk.com","autoruns":"learn.microsoft.com",
-            "process-explorer":"learn.microsoft.com","windows11":"microsoft.com","windows10-ltsc":"learn.microsoft.com",
-            "rufus":"rufus.ie","directx":"microsoft.com","visual-cpp":"microsoft.com","webview2":"microsoft.com",
-            "java":"java.com","dotnet":"dotnet.microsoft.com","directx-2010":"microsoft.com",
-            "adblock-plus":"adblockplus.org","adblock":"getadblock.com","adguard":"adguard.com",
-            "google-docs":"docs.google.com","virustotal":"virustotal.com","ilovepdf":"ilovepdf.com",
-            "tinypng":"tinypng.com","speedtest":"speedtest.net","removebg":"remove.bg"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq icoutils python3-pil
+          mkdir -p /tmp/native-icons assets/program-icons
+          curl -fL --retry 3 -o /tmp/native-icons/autoruns.zip https://download.sysinternals.com/files/Autoruns.zip
+          curl -fL --retry 3 -o /tmp/native-icons/procexp.zip https://download.sysinternals.com/files/ProcessExplorer.zip
+          unzip -oq /tmp/native-icons/autoruns.zip -d /tmp/native-icons/autoruns
+          unzip -oq /tmp/native-icons/procexp.zip -d /tmp/native-icons/procexp
+          python3 - <<'PY'
+          import re, urllib.request, pathlib
+          pages={
+            'wise-disk':'https://www.wisecleaner.com/wise-disk-cleaner.html',
+            'wise-registry':'https://www.wisecleaner.com/wise-registry-cleaner.html'
           }
-          out = pathlib.Path("assets/program-icons")
-          out.mkdir(parents=True, exist_ok=True)
-          for slug, domain in icons.items():
-              url = "https://www.google.com/s2/favicons?domain=" + urllib.parse.quote(domain) + "&sz=128"
-              req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0"})
-              data = urllib.request.urlopen(req, timeout=30).read()
-              if len(data) < 100:
-                  raise RuntimeError(f"Icon download failed: {slug} ({len(data)} bytes)")
-              (out / f"{slug}.png").write_bytes(data)
-              print(slug, len(data))
-      - name: Commit local icon files
+          out=pathlib.Path('/tmp/native-icons')
+          for slug,url in pages.items():
+              html=urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})).read().decode('utf-8','ignore')
+              links=re.findall(r'href=["\']([^"\']+\.exe(?:\?[^"\']*)?)',html,re.I)
+              if not links: raise RuntimeError('No official installer link for '+slug)
+              link=urllib.parse.urljoin(url,links[0])
+              data=urllib.request.urlopen(urllib.request.Request(link,headers={'User-Agent':'Mozilla/5.0'})).read()
+              (out/(slug+'.exe')).write_bytes(data)
+              print(slug,link,len(data))
+          PY
+          mkdir -p /tmp/native-icons/extracted
+          wrestool -x -t 14 /tmp/native-icons/autoruns/Autoruns64.exe > /tmp/native-icons/extracted/autoruns.ico
+          wrestool -x -t 14 /tmp/native-icons/procexp/procexp64.exe > /tmp/native-icons/extracted/process-explorer.ico
+          wrestool -x -t 14 /tmp/native-icons/wise-disk.exe > /tmp/native-icons/extracted/wise-disk.ico
+          wrestool -x -t 14 /tmp/native-icons/wise-registry.exe > /tmp/native-icons/extracted/wise-registry.ico
+          python3 - <<'PY'
+          from PIL import Image
+          import pathlib
+          src=pathlib.Path('/tmp/native-icons/extracted')
+          dst=pathlib.Path('assets/program-icons')
+          for ico in src.glob('*.ico'):
+              im=Image.open(ico)
+              best=None
+              for i in range(getattr(im,'n_frames',1)):
+                  im.seek(i)
+                  frame=im.convert('RGBA')
+                  if best is None or frame.width*frame.height>best.width*best.height:
+                      best=frame.copy()
+              best.thumbnail((128,128),Image.Resampling.LANCZOS)
+              best.save(dst/(ico.stem+'.png'))
+              print(ico.stem,best.size)
+          PY
+      - name: Commit native local icons
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/program-icons
-          git commit -m "Добавить локальные значки программ [skip ci]"
+          git commit -m "Добавить родные локальные значки [skip ci]"
           git push
