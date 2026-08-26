@@ -6,7 +6,7 @@ permissions:
   contents: write
 jobs:
   vendor-icons:
-    if: github.event.head_commit.message == 'Убрать все повторяющиеся значки'
+    if: github.event.head_commit.message == 'Завершить индивидуальные значки'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,8 +24,7 @@ jobs:
             'dotnet':'Microsoft .NET logo.svg',
             'directx':'Microsoft-DirectX-Logo-wordmark.svg',
             'directx-2010':'Microsoft-DirectX-10-Logo-wordmark.svg',
-            'windows11':'Windows logo - 2021.svg',
-            'windows10-ltsc':'Windows 10 Logo.svg'
+            'windows11':'Windows logo - 2021.svg'
           }
           for slug,name in files.items():
               url='https://commons.wikimedia.org/wiki/Special:Redirect/file/'+urllib.parse.quote(name)
@@ -33,18 +32,23 @@ jobs:
               data=urllib.request.urlopen(req,timeout=45).read()
               (out/(slug+'.svg')).write_bytes(data)
               print(slug,len(data))
+          import time
           extras={
             'visual-cpp':'https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/cplusplus.svg',
             'wise-disk':'https://www.wisecleaner.com/static/img/product/wise-disk-cleaner/wisefolderhider_icon.png',
             'wise-registry':'https://www.wisecleaner.com/static/img/product/wise-registry-cleaner/wiseregistrycleaner_icon.png'
           }
           for slug,url in extras.items():
+              time.sleep(1)
               req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
               data=urllib.request.urlopen(req,timeout=45).read()
               ext='.svg' if slug=='visual-cpp' else '.png'
               (out/(slug+ext)).write_bytes(data)
               print(slug,len(data))
           PY
+          cat > /tmp/logos/windows10-ltsc.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#087cd5" d="M8 24l48-7v43H8V24zm54-8l58-8v52H62V16zM8 67h48v44l-48-7V67zm54 0h58v53l-58-8V67z"/></svg>
+          SVG
           for f in /tmp/logos/*.svg; do
             name="$(basename "$f" .svg)"
             rsvg-convert -w 128 -h 128 "$f" -o "assets/program-icons/$name.png"
