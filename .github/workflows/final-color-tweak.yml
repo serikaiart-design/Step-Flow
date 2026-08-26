@@ -1,0 +1,45 @@
+name: Final color tweak
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-color-tweak.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply requested text colors
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('color:#5f6b82;font-size:11px}.section', 'color:#465166;font-size:11px}.section')
+          p.write_text(s, encoding='utf-8')
+
+          p = Path('assistant-theme.js')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('white-space:nowrap;color:#747b8d;text-align:center', 'white-space:nowrap;color:#000;text-align:center')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit changes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'No changes needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assistant-theme.js
+          git commit -m 'style: adjust footer and update label colors'
+          git push
