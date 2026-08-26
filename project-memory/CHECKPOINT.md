@@ -1,6 +1,6 @@
-# STEP & FLOW — RECOVERY CHECKPOINT
+# STEP-FLOW BY SK AI ART — RECOVERY CHECKPOINT
 
-Date: 2026-08-25
+Date: 2026-08-26
 Repository: `serikaiart-design/Step-Flow`
 Production: `https://serikaiart-design.github.io/Step-Flow/`
 Branch: `main`
@@ -19,7 +19,7 @@ Then inspect current `main` before changing code.
 
 ## Stable baseline before memory files
 
-Commit: `308f22c2b721786c234eed6ee05b91fd7ebc18c3`
+Latest stable production code commit: `a8106b01ea6194a36732048fb93c185c75672709`
 Message: `Load Step Flow legal and privacy content`
 
 The project-memory commits follow that baseline and do not intentionally modify production UI logic.
@@ -43,6 +43,11 @@ Working/implemented:
 - BSOD knowledge module based on Microsoft Bug Check codes.
 - Common Windows `0x800...` error knowledge.
 - Plain-language Windows error interpreter.
+- Colloquial-Russian and common-typo normalization for supported scenarios.
+- Multi-symptom clarification before routing.
+- Original-problem, observation and error-code persistence in `sessionStorage`.
+- BSOD-code recurrence flow connected to the existing boot FSM.
+- Required behavioral NLU regression test.
 - Photo/screenshot selection UI with local preview and privacy warning.
 - Rules/conditions and privacy content adapted toward Kazakhstan operation.
 
@@ -61,14 +66,20 @@ Working/implemented:
 - `restore-sections.js` — restores Windows/System-components sections.
 - `search-fix.js` — smart top start/search behavior.
 
+## Verified milestone — 2026-08-26
+
+- GitHub `FSM Safety Check`: success, including real NLU behavior assertions.
+- GitHub Pages build and deployment: success.
+- Production Assistant contains the new routing and BSOD context logic.
+- No existing troubleshooting instruction text or static HTML/CSS/JS architecture was replaced.
+
 ## Next major work
 
-1. Improve Assistant natural-language understanding.
-2. Wire BSOD/error knowledge more deeply into the existing dialogue engine.
-3. Implement protected Vision/OCR backend.
-4. Connect image analysis to structured facts and existing scenarios.
-5. Add advanced dump/WinDbg path for recurring BSOD cases.
-6. Run regression tests after each major change.
+1. Extend entity extraction for Windows version, app, device, driver and BIOS/UEFI.
+2. Implement protected Vision/OCR backend.
+3. Connect image analysis to structured facts and existing scenarios.
+4. Add protected crash-dump/WinDbg path for recurring BSOD cases.
+5. Run regression tests after each major change.
 
 ## Safety / privacy constraints
 
