@@ -1,72 +1,57 @@
-name: Vendor remaining individual icons
+name: Finalize unique local icons
 on:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
-  vendor-icons:
-    if: github.event.head_commit.message == 'Завершить индивидуальные значки'
+  finalize-icons:
+    if: github.event.head_commit.message == 'Финально убрать повторы значков'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download product-specific icons
+      - name: Build unique local icons
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq librsvg2-bin python3-pil
           mkdir -p /tmp/logos assets/program-icons
-          python3 - <<'PY'
-          import pathlib, urllib.request, urllib.parse
-          out=pathlib.Path('/tmp/logos')
-          files={
-            'microsoft-365':'Microsoft 365 (2022).svg',
-            'webview2':'Microsoft Edge logo (2019).svg',
-            'dotnet':'Microsoft .NET logo.svg',
-            'directx':'Microsoft-DirectX-Logo-wordmark.svg',
-            'directx-2010':'Microsoft-DirectX-10-Logo-wordmark.svg',
-            'windows11':'Windows logo - 2021.svg'
-          }
-          for slug,name in files.items():
-              url='https://commons.wikimedia.org/wiki/Special:Redirect/file/'+urllib.parse.quote(name)
-              req=urllib.request.Request(url,headers={'User-Agent':'Step-Flow/1.0'})
-              data=urllib.request.urlopen(req,timeout=45).read()
-              (out/(slug+'.svg')).write_bytes(data)
-              print(slug,len(data))
-          import time
-          extras={
-            'visual-cpp':'https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/cplusplus.svg',
-            'wise-disk':'https://www.wisecleaner.com/static/img/product/wise-disk-cleaner/wisefolderhider_icon.png',
-            'wise-registry':'https://www.wisecleaner.com/static/img/product/wise-registry-cleaner/wiseregistrycleaner_icon.png'
-          }
-          for slug,url in extras.items():
-              time.sleep(1)
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-              data=urllib.request.urlopen(req,timeout=45).read()
-              ext='.svg' if slug=='visual-cpp' else '.png'
-              (out/(slug+ext)).write_bytes(data)
-              print(slug,len(data))
-          PY
-          cat > /tmp/logos/windows10-ltsc.svg <<'SVG'
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#087cd5" d="M8 24l48-7v43H8V24zm54-8l58-8v52H62V16zM8 67h48v44l-48-7V67zm54 0h58v53l-58-8V67z"/></svg>
+          curl -fL --retry 4 -A "Mozilla/5.0" -o /tmp/logos/wise-disk.png https://www.wisecleaner.com/static/img/product/wise-disk-cleaner/wisefolderhider_icon.png
+          curl -fL --retry 4 -A "Mozilla/5.0" -o /tmp/logos/wise-registry.png https://www.wisecleaner.com/static/img/product/wise-registry-cleaner/wiseregistrycleaner_icon.png
+          cat > /tmp/logos/microsoft-365.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f35325"/><stop offset=".5" stop-color="#c43b9b"/><stop offset="1" stop-color="#5b4bd8"/></linearGradient></defs><path fill="url(#g)" d="M35 13l53 9 24 28-11 49-43 17-42-27V37zm22 23L36 47v32l23 14 27-10 7-29-13-15z"/></svg>
           SVG
-          for f in /tmp/logos/*.svg; do
-            name="$(basename "$f" .svg)"
-            rsvg-convert -w 128 -h 128 "$f" -o "assets/program-icons/$name.png"
-          done
+          cat > /tmp/logos/webview2.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#0aa0f6"/><stop offset=".5" stop-color="#08c5a1"/><stop offset="1" stop-color="#0c65d8"/></linearGradient></defs><path fill="url(#g)" d="M116 70c0-36-29-58-59-55C28 18 10 42 12 67c2 29 26 49 55 49 19 0 35-8 45-22-14 8-34 10-48 2-8-4-13-11-14-19h66zM49 59c4-14 16-23 31-23 14 0 26 9 31 23z"/></svg>
+          SVG
+          cat > /tmp/logos/visual-cpp.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#00599c" d="M18 30l43-24 43 24v21h-16V39L61 24 34 39v50l27 15 27-15V77h16v21l-43 24-43-24z"/><text x="49" y="80" font-family="Arial" font-size="40" font-weight="700" fill="#004482">C++</text></svg>
+          SVG
+          cat > /tmp/logos/dotnet.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect x="8" y="8" width="112" height="112" rx="25" fill="#512bd4"/><text x="18" y="79" font-family="Arial" font-size="38" font-weight="700" fill="white">.NET</text></svg>
+          SVG
+          cat > /tmp/logos/directx.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#18a5ff"/><stop offset="1" stop-color="#183bd8"/></linearGradient></defs><rect x="8" y="8" width="112" height="112" rx="25" fill="url(#g)"/><text x="20" y="77" font-family="Arial" font-size="33" font-weight="800" fill="white">DX</text></svg>
+          SVG
+          cat > /tmp/logos/directx-2010.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect x="8" y="8" width="112" height="112" rx="25" fill="#172554"/><text x="15" y="66" font-family="Arial" font-size="29" font-weight="800" fill="#60a5fa">DX</text><text x="18" y="91" font-family="Arial" font-size="20" font-weight="700" fill="white">2010</text></svg>
+          SVG
+          cat > /tmp/logos/windows11.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#087cd5" d="M10 12h50v50H10zm58 0h50v50H68zM10 70h50v50H10zm58 0h50v50H68z"/></svg>
+          SVG
+          cat > /tmp/logos/windows10-ltsc.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path fill="#00a4ef" d="M8 25l48-7v42H8zm54-8l58-9v52H62zM8 67h48v43l-48-7zm54 0h58v53l-58-9z"/></svg>
+          SVG
+          for f in /tmp/logos/*.svg; do n="$(basename "$f" .svg)"; rsvg-convert -w 128 -h 128 "$f" -o "assets/program-icons/$n.png"; done
           python3 - <<'PY'
           from PIL import Image
-          import pathlib
           for slug in ('wise-disk','wise-registry'):
-              im=Image.open('/tmp/logos/'+slug+'.png').convert('RGBA')
-              im.thumbnail((128,128),Image.Resampling.LANCZOS)
-              canvas=Image.new('RGBA',(128,128),(0,0,0,0))
-              canvas.alpha_composite(im,((128-im.width)//2,(128-im.height)//2))
-              canvas.save('assets/program-icons/'+slug+'.png')
+              im=Image.open('/tmp/logos/'+slug+'.png').convert('RGBA'); im.thumbnail((128,128),Image.Resampling.LANCZOS)
+              bg=Image.new('RGBA',(128,128),(0,0,0,0)); bg.alpha_composite(im,((128-im.width)//2,(128-im.height)//2)); bg.save('assets/program-icons/'+slug+'.png')
           PY
-      - name: Commit individual local icons
+      - name: Save final icons
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/program-icons
-          git commit -m "Убрать повторы локальных значков [skip ci]"
+          git commit -m "Завершить локальные значки программ [skip ci]"
           git push
