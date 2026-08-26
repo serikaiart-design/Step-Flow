@@ -2,41 +2,147 @@
 const css=`.sf-help-btn{position:fixed;right:22px;bottom:22px;z-index:9998;border:0;border-radius:999px;padding:14px 18px;background:linear-gradient(135deg,#7c3aed,#8d2df0);color:#fff;font:800 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;box-shadow:0 12px 30px rgba(73,44,145,.28);cursor:pointer}.sf-help-panel{position:fixed;right:22px;bottom:82px;z-index:9999;width:min(430px,calc(100vw - 28px));max-height:min(680px,calc(100vh - 110px));display:none;flex-direction:column;background:#fff;border:1px solid rgba(40,49,84,.10);border-radius:24px;box-shadow:0 24px 70px rgba(35,30,78,.22);overflow:hidden;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#121a31}.sf-help-panel.open{display:flex}.sf-help-head{padding:13px 16px;background:linear-gradient(135deg,#f3edff,#fff3e9);border-bottom:1px solid rgba(40,49,84,.08)}.sf-help-headrow{display:flex;align-items:center;gap:10px}.sf-help-title{font-weight:850;font-size:17px;flex:1}.sf-help-sub{margin-top:3px;color:#687289;font-size:12px}.sf-back{display:none;border:0;background:rgba(255,255,255,.72);color:#6234c3;border-radius:10px;padding:7px 9px;font:800 12px/1 inherit;cursor:pointer}.sf-back.show{display:inline-block}.sf-help-chat{padding:14px;display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:285px}.sf-msg{max-width:92%;padding:10px 12px;border-radius:15px}.sf-bot{align-self:flex-start;background:#f3f0ff}.sf-user{align-self:flex-end;background:#7c3aed;color:#fff}.sf-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.sf-actions button{border:0;border-radius:10px;padding:8px 10px;font:800 12px/1.2 inherit;cursor:pointer}.sf-primary{background:#7c3aed!important;color:#fff!important}.sf-secondary{background:#fff;color:#6234c3;border:1px solid #ddd1f6!important}.sf-help-form{display:flex;gap:8px;padding:12px;border-top:1px solid #eee;background:#fbfbfd}.sf-help-form input{flex:1;min-width:0;border:1px solid #dfe2ea;border-radius:13px;padding:11px 12px;font:inherit;outline:none}.sf-help-form button{border:0;border-radius:13px;padding:0 14px;background:#7c3aed;color:#fff;font-weight:850}.sf-help-panel :focus-visible,.sf-help-btn:focus-visible{outline:3px solid #6d35e5;outline-offset:3px}.sf-close{border:0;background:transparent;font-size:19px;cursor:pointer;color:#6c7382}.sf-tag{display:inline-block;margin-bottom:6px;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.4px;color:#6b3bd0}.sf-note{margin-top:7px;font-size:12px;color:#667085}@media(max-width:520px){.sf-help-btn{right:14px;bottom:14px}.sf-help-panel{right:14px;bottom:72px}.sf-help-form{display:grid}.sf-help-form button{padding:11px}.sf-back{padding:8px 10px}}`;
 const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);
 const STORAGE_KEY='sfAssistantSessionV1',SESSION_TTL=6*60*60*1000;
-const emptySession=()=>({caseId:null,family:null,state:null,originalProblem:null,attempted:[],history:[],observations:[],errorCodes:[],savedAt:Date.now()});
-function loadSession(){try{const value=JSON.parse(sessionStorage.getItem(STORAGE_KEY)||'null');if(!value||!value.caseId||Date.now()-Number(value.savedAt||0)>SESSION_TTL){sessionStorage.removeItem(STORAGE_KEY);return emptySession()}return {...emptySession(),...value,history:Array.isArray(value.history)?value.history:[],attempted:Array.isArray(value.attempted)?value.attempted:[],observations:Array.isArray(value.observations)?value.observations:[],errorCodes:Array.isArray(value.errorCodes)?value.errorCodes:[]}}catch(e){return emptySession()}}
+const emptyEntities=()=>({programs:[],devices:[],drivers:[],firmware:[]});
+const emptyFacts=()=>({windows:{version:null,build:null},device:{vendor:null,model:null},entities:emptyEntities(),observations:[],errorCodes:[]});
+const emptySession=()=>({caseId:null,family:null,state:null,originalProblem:null,attempted:[],history:[],...emptyFacts(),savedAt:Date.now()});
+function loadSession(){try{const value=JSON.parse(sessionStorage.getItem(STORAGE_KEY)||'null');if(!value||!value.caseId||Date.now()-Number(value.savedAt||0)>SESSION_TTL){sessionStorage.removeItem(STORAGE_KEY);return emptySession()}return {...emptySession(),...value,history:Array.isArray(value.history)?value.history:[],attempted:Array.isArray(value.attempted)?value.attempted:[],observations:Array.isArray(value.observations)?value.observations:[],errorCodes:Array.isArray(value.errorCodes)?value.errorCodes:[],windows:{version:value.windows&&value.windows.version||null,build:value.windows&&value.windows.build||null},device:{vendor:value.device&&value.device.vendor||null,model:value.device&&value.device.model||null},entities:{programs:Array.isArray(value.entities&&value.entities.programs)?value.entities.programs:[],devices:Array.isArray(value.entities&&value.entities.devices)?value.entities.devices:[],drivers:Array.isArray(value.entities&&value.entities.drivers)?value.entities.drivers:[],firmware:Array.isArray(value.entities&&value.entities.firmware)?value.entities.firmware:[]}}}catch(e){return emptySession()}}
 function saveSession(){try{session.savedAt=Date.now();sessionStorage.setItem(STORAGE_KEY,JSON.stringify(session))}catch(e){}}
 let session=loadSession();
 let pendingProblem='';
+let pendingFacts=emptyFacts();
 const btn=document.createElement('button');btn.type='button';btn.className='sf-help-btn';btn.textContent='Разобраться по шагам';btn.setAttribute('aria-controls','sf-help-panel');btn.setAttribute('aria-expanded','false');
 const panel=document.createElement('section');panel.id='sf-help-panel';panel.className='sf-help-panel';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Помощник Step-Flow');panel.innerHTML='<div class="sf-help-head"><div class="sf-help-headrow"><button class="sf-back" type="button">← Назад</button><div class="sf-help-title">Step-Flow by SK AI Art</div><button class="sf-close" type="button" aria-label="Закрыть помощник">×</button></div><div class="sf-help-sub">Один безопасный шаг за раз</div></div><div class="sf-help-chat" aria-live="polite"><div class="sf-msg sf-bot">Опишите проблему обычными словами. Сначала уточним, что происходит, а затем пойдём по одному шагу.</div></div><form class="sf-help-form"><input autocomplete="off" aria-label="Опишите проблему" placeholder="Что случилось?"><button>Дальше</button></form>';
 document.body.append(btn,panel);
 const chat=panel.querySelector('.sf-help-chat'),form=panel.querySelector('form'),input=form.querySelector('input'),backBtn=panel.querySelector('.sf-back');
-const norm=v=>String(v||'').toLowerCase().replace(/ё/g,'е').replace(/[.,!?;:()\[\]{}"']/g,' ').replace(/\s+/g,' ').replace(/(^|\s)(?:винда|виндовс|вында)(?=\s|$)/g,'$1windows').replace(/(^|\s)(?:инет|инета|инету|интирнет)(?=\s|$)/g,'$1интернет').replace(/(^|\s)(?:прога|прогу|приложуха)(?=\s|$)/g,'$1программа').trim();
+const norm=v=>String(v||'').toLowerCase().replace(/ё/g,'е').replace(/[.,!?;:()\[\]{}"']/g,' ').replace(/\s+/g,' ').replace(/(^|\s)(?:винда|винде|винду|виндовс|вында)(?=\s|$)/g,'$1windows').replace(/(^|\s)(?:инет|инета|инету|интирнет)(?=\s|$)/g,'$1интернет').replace(/(^|\s)(?:прога|прогу|приложуха)(?=\s|$)/g,'$1программа').trim();
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+// ENTITY_EXTRACTOR_START
+const ENTITY_PROGRAM_RULES=[
+ ['Google Chrome',/(?:^|\s)(?:google\s+chrome|chrome|хром(?:е|а|ом)?)(?=\s|$)/],
+ ['Microsoft Edge',/(?:^|\s)(?:microsoft\s+edge|edge|эдж(?:е|а)?)(?=\s|$)/],
+ ['Firefox',/(?:^|\s)(?:firefox|фаерфокс|мозилл(?:а|е|у)?)(?=\s|$)/],
+ ['Microsoft Word',/(?:^|\s)(?:microsoft\s+word|word|ворд(?:е|а|ом)?)(?=\s|$)/],
+ ['Microsoft Excel',/(?:^|\s)(?:microsoft\s+excel|excel|эксел(?:ь|е|я|ем)?)(?=\s|$)/],
+ ['Microsoft 365',/(?:^|\s)(?:microsoft\s+365|office\s+365|офис\s+365)(?=\s|$)/],
+ ['PotPlayer',/(?:^|\s)(?:potplayer|потплеер)(?=\s|$)/],
+ ['NCALayer',/(?:^|\s)(?:ncalayer|нкал(?:е|э)йер)(?=\s|$)/],
+ ['7-Zip',/(?:^|\s)(?:7[\s-]*zip|7зип)(?=\s|$)/],
+ ['AnyDesk',/(?:^|\s)(?:anydesk|энидеск|анидеск)(?=\s|$)/],
+ ['Steam',/(?:^|\s)(?:steam|стим(?:е|а)?)(?=\s|$)/],
+ ['Telegram',/(?:^|\s)(?:telegram|телеграм(?:е|а)?)(?=\s|$)/],
+ ['WhatsApp',/(?:^|\s)(?:whatsapp|ватсап(?:е|а)?)(?=\s|$)/],
+ ['Zoom',/(?:^|\s)(?:zoom|зум(?:е|а)?)(?=\s|$)/],
+ ['Adobe Photoshop',/(?:^|\s)(?:adobe\s+photoshop|photoshop|фотошоп(?:е|а)?)(?=\s|$)/]
+];
+const ENTITY_DEVICE_RULES=[
+ ['Принтер',/(?:^|\s)принтер(?:а|е|ом|ы)?(?=\s|$)/],
+ ['Сканер',/(?:^|\s)сканер(?:а|е|ом|ы)?(?=\s|$)/],
+ ['Микрофон',/(?:^|\s)микрофон(?:а|е|ом|ы)?(?=\s|$)/],
+ ['Наушники',/(?:^|\s)наушник(?:и|ов|ах|ами)?(?=\s|$)/],
+ ['Клавиатура',/(?:^|\s)клавиатур(?:а|ы|е|у|ой)?(?=\s|$)/],
+ ['Мышь',/(?:^|\s)мыш(?:ь|и|ью)(?=\s|$)/],
+ ['Видеокарта',/(?:^|\s)(?:видеокарт(?:а|ы|е|у|ой)?|gpu)(?=\s|$)/],
+ ['SSD',/(?:^|\s)(?:ssd|ссд)(?=\s|$)/],
+ ['HDD',/(?:^|\s)(?:hdd|жестк(?:ий|ого|ом)\s+диск)(?=\s|$)/],
+ ['USB-накопитель',/(?:^|\s)(?:флешк(?:а|и|е|у|ой)?|usb[\s-]+(?:диск|накопитель))(?=\s|$)/],
+ ['Роутер',/(?:^|\s)(?:роутер(?:а|е|ом)?|маршрутизатор(?:а|е|ом)?)(?=\s|$)/],
+ ['Wi-Fi адаптер',/(?:^|\s)(?:wi.?fi|вай.?фай)\s+адаптер(?=\s|$)/],
+ ['Ноутбук',/(?:^|\s)ноутбук(?:а|е|ом)?(?=\s|$)/]
+];
+const ENTITY_VENDOR_RULES=[
+ ['NVIDIA',/(?:^|\s)(?:nvidia|нвидиа)(?=\s|$)/],
+ ['AMD',/(?:^|\s)(?:amd|radeon|радеон)(?=\s|$)/],
+ ['Intel',/(?:^|\s)(?:intel|интел)(?=\s|$)/],
+ ['Realtek',/(?:^|\s)(?:realtek|реалтек)(?=\s|$)/]
+];
+const ENTITY_FIRMWARE_RULES=[
+ ['BIOS',/(?:^|\s)(?:bios|биос)(?=\s|$)/],
+ ['UEFI',/(?:^|\s)uefi(?=\s|$)/]
+];
+const BSOD_CODE_RE=/(?:MEMORY_MANAGEMENT|WHEA_UNCORRECTABLE_ERROR|CRITICAL_PROCESS_DIED|DRIVER_IRQL_NOT_LESS_OR_EQUAL|IRQL_NOT_LESS_OR_EQUAL|DPC_WATCHDOG_VIOLATION|INACCESSIBLE_BOOT_DEVICE|KERNEL_SECURITY_CHECK_FAILURE|PAGE_FAULT_IN_NONPAGED_AREA|VIDEO_TDR_FAILURE|SYSTEM_SERVICE_EXCEPTION)/gi;
+const uniq=values=>[...new Set((values||[]).filter(Boolean))];
+const matchedLabels=(rules,x)=>rules.filter(([,pattern])=>pattern.test(x)).map(([label])=>label);
+function extractEntities(text){
+ const raw=String(text||'');
+ const x=norm(raw);
+ const versionMatch=x.match(/(?:^|\s)(?:windows|win)\s*(11|10|8(?:\s*1)?|7)(?=\s|$)/);
+ const buildMatch=raw.match(/(?:build|сборка|сборки)\s*[:#№-]?\s*(\d{4,5}(?:\.\d{1,5}){0,3})/i);
+ const programs=matchedLabels(ENTITY_PROGRAM_RULES,x);
+ const devices=matchedLabels(ENTITY_DEVICE_RULES,x);
+ const vendors=matchedLabels(ENTITY_VENDOR_RULES,x);
+ const driverContext=/(?:^|\s)(?:драйвер(?:а|е|ом|ы)?|driver)(?=\s|$)/.test(x);
+ const drivers=driverContext?vendors:[];
+ const firmware=matchedLabels(ENTITY_FIRMWARE_RULES,x);
+ const hexCodes=raw.match(/0x[0-9a-f]{4,16}/gi)||[];
+ const deviceCodes=[...raw.matchAll(/(?:code|код)(?:\s+ошибки)?\s*(10|19|28|31|43|45|48|52)(?=\D|$)/gi)].map(match=>'Code '+match[1]);
+ const bsodCodes=(raw.match(BSOD_CODE_RE)||[]).map(code=>code.toUpperCase());
+ const version=versionMatch?'Windows '+versionMatch[1].replace(/\s+/g,'.'):null;
+ const build=buildMatch?buildMatch[1]:null;
+ const errorCodes=uniq([...hexCodes.map(code=>code.toLowerCase()),...deviceCodes,...bsodCodes]);
+ const observations=uniq([
+  version,
+  build?'Сборка '+build:null,
+  ...programs.map(value=>'Программа: '+value),
+  ...devices.map(value=>'Устройство: '+value),
+  ...drivers.map(value=>'Драйвер: '+value),
+  ...firmware.map(value=>'Прошивка: '+value),
+  ...errorCodes.map(value=>'Код: '+value)
+ ]);
+ return {windows:{version,build},device:{vendor:vendors[0]||null,model:devices[0]||null},entities:{programs,devices,drivers,firmware},observations,errorCodes};
+}
+function mergeFacts(target,facts){
+ if(!target||!facts)return target;
+ target.windows={version:facts.windows&&facts.windows.version||target.windows&&target.windows.version||null,build:facts.windows&&facts.windows.build||target.windows&&target.windows.build||null};
+ target.device={vendor:facts.device&&facts.device.vendor||target.device&&target.device.vendor||null,model:facts.device&&facts.device.model||target.device&&target.device.model||null};
+ const current=target.entities||emptyEntities();
+ const incoming=facts.entities||emptyEntities();
+ target.entities={programs:uniq([...(current.programs||[]),...(incoming.programs||[])]),devices:uniq([...(current.devices||[]),...(incoming.devices||[])]),drivers:uniq([...(current.drivers||[]),...(incoming.drivers||[])]),firmware:uniq([...(current.firmware||[]),...(incoming.firmware||[])])};
+ target.observations=uniq([...(target.observations||[]),...(facts.observations||[])]);
+ target.errorCodes=uniq([...(target.errorCodes||[]),...(facts.errorCodes||[])]);
+ return target;
+}
+function factSummary(target){
+ if(!target)return '';
+ const entities=target.entities||emptyEntities();
+ return uniq([
+  target.windows&&target.windows.version,
+  target.windows&&target.windows.build?'сборка '+target.windows.build:null,
+  ...(entities.programs||[]),
+  ...(entities.devices||[]),
+  ...(entities.drivers||[]).map(value=>'драйвер '+value),
+  ...(entities.firmware||[]),
+  ...(target.errorCodes||[])
+ ]).slice(0,6).join(' · ');
+}
+function savedFactsNote(){const value=factSummary(session.caseId?session:pendingFacts);return value?'<div class="sf-note">Сохранил как факты: '+esc(value)+'.</div>':''}
+// ENTITY_EXTRACTOR_END
 function msg(html,user=false){const d=document.createElement('div');d.className='sf-msg '+(user?'sf-user':'sf-bot');d.innerHTML=html;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d}
 function buttons(items){const a=document.createElement('div');a.className='sf-actions';items.forEach(([label,value,primary])=>{const b=document.createElement('button');b.type='button';b.className=primary?'sf-primary':'sf-secondary';b.textContent=label;b.onclick=()=>{msg(esc(label),true);handle(value)};a.appendChild(b)});chat.lastElementChild.appendChild(a)}
 function updateBack(){backBtn.classList.toggle('show',!!(session.caseId&&session.history&&session.history.length))}
 function pushHistory(){if(session.caseId&&session.family&&session.state){session.history=session.history||[];session.history.push({family:session.family,state:session.state});saveSession()}}
-function start(family,state){if(session.caseId){pushHistory();session.family=family;session.state=state}else{session={caseId:'case_'+Date.now(),family,state,originalProblem:pendingProblem||null,attempted:[],history:[],observations:[],errorCodes:[],savedAt:Date.now()}}pendingProblem='';saveSession();render()}
+function start(family,state){if(session.caseId){pushHistory();session.family=family;session.state=state}else{session={...emptySession(),caseId:'case_'+Date.now(),family,state,originalProblem:pendingProblem||null,savedAt:Date.now()};mergeFacts(session,pendingFacts)}pendingProblem='';pendingFacts=emptyFacts();saveSession();render()}
 function move(state){if(session.state){pushHistory();session.attempted.push(session.family+':'+session.state)}session.state=state;saveSession();render()}
 function goBack(){if(!session.caseId||!session.history||!session.history.length)return;const prev=session.history.pop();session.family=prev.family;session.state=prev.state;saveSession();msg('← Назад',true);render()}
-function clear(){session=emptySession();pendingProblem='';try{sessionStorage.removeItem(STORAGE_KEY)}catch(e){}updateBack()}
+function clear(){session=emptySession();pendingProblem='';pendingFacts=emptyFacts();try{sessionStorage.removeItem(STORAGE_KEY)}catch(e){}updateBack()}
 function resolved(){msg('<span class="sf-tag">Готово</span><br><b>Проблема исчезла.</b><div class="sf-note">Если всё работает, больше ничего менять не нужно.</div>');clear()}
 function currentHelp(text){msg('<b>Остаёмся в этой же проблеме.</b><br>'+text+'<div class="sf-note">Можно вернуться на предыдущий шаг кнопкой «Назад».</div>')}
 function captureEvidence(kind,data={},originalText=''){
  const code=String(data.code||'').trim();
  const label=String(data.name||data.title||'').trim();
+ const facts=extractEntities(originalText);
  if(kind==='bsod'){
   if(session.caseId)pushHistory();
   if(!session.caseId)session={...emptySession(),caseId:'case_'+Date.now(),family:'boot',state:'bsod_context',originalProblem:originalText||('Синий экран '+code).trim()};
   else{session.family='boot';session.state='bsod_context';if(!session.originalProblem)session.originalProblem=originalText||('Синий экран '+code).trim()}
-  session.errorCodes=[...new Set([...(session.errorCodes||[]),code].filter(Boolean))];
-  session.observations=[...new Set([...(session.observations||[]),label].filter(Boolean))];
-  pendingProblem='';saveSession();updateBack();render();return true;
+  mergeFacts(session,facts);
+  session.errorCodes=uniq([...(session.errorCodes||[]),code]);
+  session.observations=uniq([...(session.observations||[]),label]);
+  pendingProblem='';pendingFacts=emptyFacts();saveSession();updateBack();render();return true;
  }
  if(session.caseId){
-  session.errorCodes=[...new Set([...(session.errorCodes||[]),code].filter(Boolean))];
-  session.observations=[...new Set([...(session.observations||[]),label].filter(Boolean))];
+  mergeFacts(session,facts);
+  session.errorCodes=uniq([...(session.errorCodes||[]),code]);
+  session.observations=uniq([...(session.observations||[]),label]);
   saveSession();return true;
  }
  return false;
@@ -159,11 +265,11 @@ function detectTextIntents(x){
  return [...new Set(hits)];
 }
 function clarifyDetected(intents){
- msg('<b>Вы описали несколько симптомов.</b><br>Что сейчас мешает больше всего?');
+ msg('<b>Вы описали несколько симптомов.</b><br>Что сейчас мешает больше всего?'+savedFactsNote());
  buttons(intents.map((id,index)=>[INTENT_ACTIONS[id][0],INTENT_ACTIONS[id][1],index===0]));
 }
-function clarify(){msg('<b>Нужно одно уточнение.</b><br>Что именно происходит?');buttons([['Компьютер не включается','clarify_power'],['Windows не загружается','start_boot'],['Работает медленно','start_slow'],['Зависает программа','start_app'],['Нет интернета','start_network'],['Нет звука','clarify_audio'],['Не знаю — помоги определить','clarify_unknown']])}
-function handle(v,isUserText=false){const x=norm(v);if(isUserText&&!pendingProblem)pendingProblem=String(v||'').trim();
+function clarify(){msg('<b>Нужно одно уточнение.</b><br>Что именно происходит?'+savedFactsNote());buttons([['Компьютер не включается','clarify_power'],['Windows не загружается','start_boot'],['Работает медленно','start_slow'],['Зависает программа','start_app'],['Нет интернета','start_network'],['Нет звука','clarify_audio'],['Не знаю — помоги определить','clarify_unknown']])}
+function handle(v,isUserText=false){const original=String(v||'').trim(),x=norm(v);if(isUserText&&original){const facts=extractEntities(original);if(session.caseId){mergeFacts(session,facts);saveSession()}else{mergeFacts(pendingFacts,facts);pendingProblem=[pendingProblem,original].filter(Boolean).join(' · ')}}
  if(/дым|запах.{0,8}гар|искр|жидкост/.test(x)){msg('<b>Остановите диагностику.</b><br>Выключите компьютер и отключите питание, если это безопасно.');clear();return}
  if(v==='resolved'){resolved();return}
  if(v==='start_slow'||v==='slow'){start('slow','scope');return}
