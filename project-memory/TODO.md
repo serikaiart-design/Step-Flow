@@ -10,20 +10,23 @@ Updated: 2026-08-26
 - Preserved the original user problem, observations and error codes in the Assistant session.
 - Connected recognized BSOD codes to a saved recurrence flow that survives page refresh.
 - Added behavioral NLU regression tests to the required GitHub test suite.
+- Added conservative extraction of Windows version/build, known programs, devices, driver vendors, BIOS/UEFI and error codes.
+- Persisted extracted facts in the current Assistant session with backward-compatible loading of older sessions.
+- Added a visible saved-facts note during clarification without treating a detected entity as a diagnosis.
+- Added behavioral regression tests for entity extraction and session fact merging.
 
 ## Highest priority
 
-- Extend entity extraction for Windows version, program, device, driver and BIOS/UEFI.
-- Extend recurring-BSOD routing toward protected crash-dump / WinDbg analysis.
 - Build a protected Vision/OCR backend for real screenshot/photo analysis.
 - Add confidence handling for OCR and code confirmation.
-- Add advanced recurring-BSOD flow using crash dumps / WinDbg.
+- Extend recurring-BSOD routing toward a protected crash-dump / WinDbg analysis path.
+- Expand the known entity catalogue only from verified user phrases and regression cases.
 - Run regression tests after every assistant change.
 
 ## Assistant understanding
 
 - Add colloquial Russian and typo normalization: «винда тупит», «комп висит», «инет отвалился» etc.
-- Extract entities: Windows version, program, device, error code, BSOD name, driver, BIOS/UEFI.
+- Keep entity extraction conservative: save only recognized facts and ask when an important detail remains unknown.
 - Handle multiple symptoms in one message and choose/confirm the primary issue.
 - Preserve previous user facts/actions during a case.
 - Ask one targeted question when confidence is low.
