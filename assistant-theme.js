@@ -19,6 +19,8 @@
         background:linear-gradient(145deg,#16d875 0%,#08b987 48%,#13a8d7 100%)!important;
         border:2px solid rgba(255,255,255,.95)!important;
         box-shadow:0 10px 28px rgba(0,196,132,.30),0 0 0 5px rgba(20,210,145,.10)!important;
+        right:12px!important;
+        bottom:38px!important;
       }
       .sf-help-btn::after{
         content:''!important;
@@ -33,7 +35,7 @@
         box-shadow:0 14px 34px rgba(0,196,132,.38),0 0 0 6px rgba(20,210,145,.12)!important;
       }
       @media(max-width:650px){
-        .sf-help-btn{width:64px!important;height:64px!important;min-width:64px!important}
+        .sf-help-btn{width:64px!important;height:64px!important;min-width:64px!important;right:10px!important;bottom:24px!important}
         .sf-help-btn::after{width:32px!important;height:32px!important}
       }
     `;
