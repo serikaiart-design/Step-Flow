@@ -15,7 +15,7 @@ form.addEventListener('submit',async e=>{e.preventDefault();status.className='sf
  if(!form.elements.consent.checked){status.textContent='Для отправки необходимо согласие на обработку отзыва.';status.classList.add('error');return}
  const last=Number(localStorage.getItem('sfFeedbackAt')||0);if(Date.now()-last<30000){status.textContent='Подождите 30 секунд перед повторной отправкой.';status.classList.add('error');return}
  const button=form.querySelector('button');button.disabled=true;button.textContent='Отправляем…';status.textContent='';
- try{await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({type:clean(form.elements.type.value),message:text,page:location.href.split('#')[0],website:''})});localStorage.setItem('sfFeedbackAt',String(Date.now()));form.reset();status.textContent='Спасибо! Отзыв отправлен владельцу.';status.classList.add('ok')}
+ try{await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({type:clean(form.elements.type.value),message:text,page:location.href.split('#')[0],website:''})});localStorage.setItem('sfFeedbackAt',String(Date.now()));form.reset();status.textContent='Спасибо! Отзыв передан сервису отправки.';status.classList.add('ok')}
  catch(err){status.textContent='Не удалось отправить. Проверьте интернет и попробуйте ещё раз.';status.classList.add('error')}
  finally{button.disabled=false;button.textContent='Отправить'}
 });

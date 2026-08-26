@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://serikaiart-design.github.io/Step-Flow/sitemap.xml

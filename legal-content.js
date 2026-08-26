@@ -26,7 +26,7 @@ const privacy=`<div class="sf-terms">
 <p><b>Права.</b> Запросить сведения, исправление, удаление или отозвать согласие можно по адресу ${contact}. Для поиска отзыва укажите приблизительные дату, время и часть текста.</p>
 </div>`;
 function apply(){
- document.title='Step-Flow by SK AI Art — Простые решения';
+ if(document.getElementById('problems'))document.title='Step-Flow by SK AI Art — Простые решения';
  const ds=[...document.querySelectorAll('details')];
  const terms=ds.find(d=>/правила( и условия)?/i.test(d.querySelector('summary')?.textContent||''));
  if(terms){const c=terms.querySelector('.content')||terms.appendChild(document.createElement('div'));c.className='content';c.innerHTML=rules;let p=document.querySelector('[data-sf-privacy]');if(!p){p=document.createElement('details');p.dataset.sfPrivacy='1';terms.after(p)}p.id='privacy';p.innerHTML='<summary>Конфиденциальность</summary><div class="content">'+privacy+'</div>'}
