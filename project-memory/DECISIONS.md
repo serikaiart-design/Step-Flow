@@ -1,6 +1,6 @@
-# Step & Flow — DECISIONS
+# Step-Flow by SK AI Art — DECISIONS
 
-Updated: 2026-08-25
+Updated: 2026-08-26
 
 ## Product decisions
 
@@ -20,6 +20,9 @@ Updated: 2026-08-25
 4. Preserve context of previous answers and actions during a case.
 5. Distinguish symptom, evidence, probable cause and confirmed cause.
 6. For ambiguous input, ask one precise clarifying question rather than starting a random scenario.
+7. When one message contains multiple supported symptoms, ask which problem blocks the user now instead of choosing the first regex match.
+8. Free user text must never be used directly as an FSM state transition.
+9. Recognized BSOD codes are stored in session context and continue through a recurrence question; the code remains evidence, not a hardware diagnosis.
 
 ## Image / OCR decisions
 
