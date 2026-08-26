@@ -17,4 +17,33 @@ const grid=document.querySelector('#programs .programs');if(grid){[{id:'aida64',
 const wireAsk=()=>{const a=document.querySelector('#problems .cta a[href="#"]');const b=document.querySelector('.sf-help-btn');if(!a||!b)return false;a.setAttribute('href','#');a.onclick=(e)=>{e.preventDefault();b.click();setTimeout(()=>{const input=document.querySelector('.sf-help-panel input,.sf-help-panel textarea');if(input)input.focus()},120)};return true};
 const apply=()=>{const b=document.querySelector('.sf-help-btn');if(!b)return false;b.textContent='Помощник';Object.assign(b.style,{background:'linear-gradient(135deg,#49a982,#278d69)',color:'#fff',boxShadow:'0 8px 22px rgba(39,141,105,.20)',fontWeight:'850'});wireAsk();return true};if(!apply()){const i=setInterval(()=>{if(apply())clearInterval(i)},50);setTimeout(()=>clearInterval(i),3000)}
 const load=(src,key)=>{if(document.querySelector(`script[data-${key}]`))return;const s=document.createElement('script');s.async=false;s.src=new URL(src,assetBase).href;s.setAttribute(`data-${key}`,'1');document.body.appendChild(s)};load('assistant-windows11-data.js','sf-win11-knowledge');load('assistant-activation-data.js','sf-activation-knowledge');load('assistant-maintenance-tools-data.js','sf-maintenance-knowledge');load('assistant-bsod-data.js','sf-bsod-knowledge');load('assistant-windows-errors-data.js','sf-windows-errors');load('assistant-error-interpreter.js','sf-error-interpreter');load('assistant-image.js','sf-image-intake');load('assistant-image-ocr.js','sf-image-ocr');load('legal-content.js','sf-legal-content');load('restore-sections.js','sf-restore-sections');load('search-fix.js','sf-search-fix');load('feedback.js','sf-feedback');
+const premium=document.createElement('style');premium.textContent=`
+.hero-shell{position:relative;isolation:isolate}
+.hero-shell::before,.hero-shell::after{content:'';position:absolute;z-index:-1;border-radius:50%;filter:blur(42px);pointer-events:none;opacity:.46;animation:sfGlow 10s ease-in-out infinite alternate}
+.hero-shell::before{width:300px;height:300px;left:-70px;top:-105px;background:rgba(124,58,237,.28)}
+.hero-shell::after{width:280px;height:280px;right:-60px;top:25px;background:rgba(255,126,43,.22);animation-delay:-4s}
+@keyframes sfGlow{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(22px,14px,0) scale(1.08)}}
+.hero>p{line-height:1.65!important}
+.search{border:1px solid rgba(112,64,232,.10);transition:box-shadow .2s ease,border-color .2s ease,transform .2s ease}
+.search:focus-within{border-color:rgba(112,64,232,.42);box-shadow:0 17px 42px rgba(83,48,159,.17),0 0 0 4px rgba(124,58,237,.07);transform:translateY(-1px)}
+.search button{transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.search button:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(124,58,237,.22);filter:saturate(1.07)}
+.section h2{letter-spacing:-.65px;line-height:1.12}.section-lead{line-height:1.55}
+#problems .problem{overflow:hidden;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease!important;box-shadow:0 8px 24px rgba(40,49,84,.065)!important}
+#problems .problem::after{content:'';position:absolute;inset:auto -35% -75% auto;width:150px;height:150px;border-radius:50%;background:color-mix(in srgb,var(--accent) 13%,transparent);filter:blur(14px);pointer-events:none}
+#problems .problem:hover{transform:translateY(-5px) scale(1.012)!important;box-shadow:0 18px 42px rgba(40,49,84,.13)!important;border-color:color-mix(in srgb,var(--accent) 30%,#dde2ea)!important}
+#problems .problem:active{transform:translateY(-1px) scale(.995)!important}
+#problems .problem .picon{transition:transform .2s ease,box-shadow .2s ease}#problems .problem:hover .picon{transform:translateY(-2px) scale(1.05)}
+.sf-fold,#programs>.accordions details{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.sf-fold:hover,#programs>.accordions details:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(44,53,90,.085)!important;border-color:rgba(102,75,177,.18)}
+.sf-fold>summary,#programs>.accordions summary{min-height:46px;display:flex;align-items:center}
+.sf-programs-fold .program{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}.sf-programs-fold .program:hover{transform:translateY(-4px)!important;box-shadow:0 16px 34px rgba(54,49,93,.11)!important;border-color:rgba(124,58,237,.17)!important}
+.sf-programs-fold .action{display:inline-flex!important;align-items:center;min-height:30px;padding:5px 10px;border-radius:999px;background:#f1ebff;transition:background .18s ease,transform .18s ease}.sf-programs-fold .action:hover{background:#e8ddff;transform:translateY(-1px)}
+.sf-help-btn{position:fixed;overflow:visible;transition:transform .2s ease,box-shadow .2s ease!important;box-shadow:0 12px 28px rgba(39,141,105,.26)!important}.sf-help-btn:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(39,141,105,.32)!important}.sf-help-btn::before{content:'';position:absolute;inset:-6px;border-radius:999px;border:2px solid rgba(39,141,105,.20);animation:sfPulse 2.6s ease-out infinite;pointer-events:none}@keyframes sfPulse{0%{transform:scale(.92);opacity:.7}70%,100%{transform:scale(1.14);opacity:0}}
+.sf-help-panel{border-radius:26px!important;box-shadow:0 28px 74px rgba(28,34,67,.22)!important;border-color:rgba(40,49,84,.12)!important}
+.sf-help-head{background:linear-gradient(135deg,#effaf5,#f6f1ff 58%,#fff2e9)!important}
+.sf-help-form input{min-height:46px;transition:border-color .18s ease,box-shadow .18s ease}.sf-help-form input:focus{border-color:#45a47d!important;box-shadow:0 0 0 4px rgba(69,164,125,.09)}
+.sf-help-form button{min-height:44px}
+@media(max-width:650px){.search input,.search button{min-height:48px}.problem{touch-action:manipulation}.sf-help-btn{min-height:48px;padding:14px 18px!important}.sf-fold>summary,#programs>.accordions summary{min-height:50px}.sf-help-panel{border-radius:22px!important}}
+@media(prefers-reduced-motion:reduce){.hero-shell::before,.hero-shell::after,.sf-help-btn::before{animation:none!important}.search,#problems .problem,#problems .problem .picon,.sf-fold,#programs>.accordions details,.sf-programs-fold .program,.sf-help-btn{transition:none!important}}
+`;document.head.appendChild(premium);
 })();
