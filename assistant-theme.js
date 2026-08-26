@@ -17,7 +17,7 @@
         font-size:0!important;
         color:transparent!important;
         background:linear-gradient(145deg,#16d875 0%,#08b987 48%,#13a8d7 100%)!important;
-        border:2px solid rgba(255,255,255,.95)!important;
+        border:2px solid #000!important;
         box-shadow:0 10px 28px rgba(0,196,132,.30),0 0 0 5px rgba(20,210,145,.10)!important;
         right:4px!important;
         bottom:38px!important;
