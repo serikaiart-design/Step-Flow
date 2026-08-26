@@ -23,6 +23,9 @@ Updated: 2026-08-26
 7. When one message contains multiple supported symptoms, ask which problem blocks the user now instead of choosing the first regex match.
 8. Free user text must never be used directly as an FSM state transition.
 9. Recognized BSOD codes are stored in session context and continue through a recurrence question; the code remains evidence, not a hardware diagnosis.
+10. Windows version/build, known programs, devices, driver vendors, BIOS/UEFI and error codes are stored as structured session facts.
+11. Entity recognition is deliberately conservative: an unknown program or model is not invented from arbitrary words.
+12. Extracted entities are evidence for clarification and routing, never an automatic confirmed diagnosis.
 
 ## Image / OCR decisions
 
