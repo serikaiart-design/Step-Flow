@@ -13,9 +13,10 @@ assert.match(source, /синий экран\|bsod\|stop code\|стоп код/);
 assert.match(source, /originalProblem:pendingProblem\|\|null/);
 assert.match(source, /handle\(q,true\)/);
 
-const normMatch = source.match(/const norm=(v=>[^;]+);/);
-assert.ok(normMatch, 'norm function must be extractable');
-const norm = Function(`return (${normMatch[1]})`)();
+const normLine = source.split('\n').find(line => line.startsWith('const norm='));
+assert.ok(normLine, 'norm function must be extractable');
+const normExpression = normLine.slice('const norm='.length, -1);
+const norm = Function(`return (${normExpression})`)();
 
 const detectMatch = source.match(/function detectTextIntents\\(x\\)\\{[\\s\\S]*?\\n\\}/);
 assert.ok(detectMatch, 'intent detector must be extractable');
