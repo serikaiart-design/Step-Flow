@@ -1,7 +1,7 @@
 (()=>{
   const sec=document.querySelector('#programs'); if(!sec)return; const acc=sec.querySelector('.accordions');
   const iconSlugs={'DirectX Runtime':'directx','Visual C++ Redistributable':'visual-cpp','Microsoft Edge WebView2 Runtime':'webview2','Java Runtime Environment 8':'java','Microsoft .NET Framework':'dotnet','DirectX End-User Runtimes (June 2010)':'directx-2010','Adblock Plus':'adblock-plus','AdBlock':'adblock','AdGuard Антибаннер':'adguard','Google Документы офлайн':'google-docs','VirusTotal':'virustotal','iLovePDF':'ilovepdf','TinyPNG / Tinify':'tinypng','Speedtest by Ookla':'speedtest','Remove.bg':'removebg','Malwarebytes AdwCleaner':'adwcleaner','AnyDesk':'anydesk','Autoruns':'autoruns','Process Explorer':'process-explorer'};
-  const iconFor=name=>'assets/program-icons/'+(iconSlugs[name]||'google-chrome')+'.png';
+  const iconFor=name=>name==='Java Runtime Environment 8'?'assets/icons/java.svg':'assets/program-icons/'+(iconSlugs[name]||'google-chrome')+'.png';
   const makeFold=(cls,title,note,body)=>{const d=document.createElement('details');d.className='sf-fold '+cls;d.innerHTML=`<summary>${title}</summary><div class="sf-fold-body"><p class="sf-fold-note">${note}</p>${body}</div>`;return d};
   const cards=items=>`<div class="sf-component-grid">${items.map(x=>`<div class="sf-component searchable"><div class="sf-component-icon"><img src="${iconFor(x[0])}" alt="${x[0]}"></div><div><strong>${x[0]}</strong><span>${x[1]}</span>${x[4]?`<span style="display:block;margin-top:8px;color:#9a5b12">${x[4]}</span>`:''}<a href="${x[3]}" target="_blank" rel="noopener">${x[5]||'Открыть →'}</a></div></div>`).join('')}</div>`;
   const programs=sec.querySelector('.programs');
