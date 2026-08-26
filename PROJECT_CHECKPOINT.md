@@ -1,6 +1,6 @@
 # Step-Flow by SK AI Art — Project Checkpoint
 
-**Saved:** 25 August 2026  
+**Saved:** 26 August 2026  
 **Owner:** Serik  
 **Public contact:** serik.ai.art@gmail.com  
 **Production:** https://serikaiart-design.github.io/Step-Flow/  
@@ -16,9 +16,12 @@
 ## Saved functionality
 
 - Responsive desktop, tablet, and mobile layout.
-- Problem guides, program recommendations, FAQ, terms, privacy section, and About section.
-- Private feedback form sends responses through Google Apps Script to a closed Google Sheet.
-- Feedback is not published publicly.
+- Colloquial Russian and common typo normalization for supported Assistant scenarios.
+- Multi-symptom clarification instead of first-match guessing.
+- BSOD/error-code evidence saved in the active session; recurring-BSOD follow-up connected to the boot FSM.
+- Problem guides, program recommendations, collapsible reference sections, terms, privacy section, and About section.
+- Private feedback form submits requests through Google Apps Script to a closed Google Sheet; because the browser uses an opaque `no-cors` response, the interface does not claim automatic delivery confirmation.
+- Feedback is intended for the owner and is not published by the website.
 - Consent checkbox, honeypot, 30-second client cooldown, length validation, and basic spreadsheet-formula sanitization are enabled in the website form.
 - Public contact uses serik.ai.art@gmail.com.
 
@@ -44,4 +47,4 @@ The Google Apps Script deployment should eventually be updated with server-side 
 
 ## Recovery
 
-The latest production checkpoint begins with commit **057620c1ba958d9fc70601314f1f74f988c9841d** and the documentation commits that follow it. Git history preserves earlier working versions and allows rollback without deleting the project.
+The latest stable production code checkpoint is commit **a8106b01ea6194a36732048fb93c185c75672709** and the documentation commits that follow it. Git history preserves earlier working versions and allows rollback without deleting the project.
