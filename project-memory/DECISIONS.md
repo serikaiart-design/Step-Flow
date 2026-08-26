@@ -31,10 +31,11 @@ Updated: 2026-08-26
 
 1. Users should be able to attach a photo or screenshot of an error.
 2. Do not expose a Vision API key in GitHub Pages JavaScript.
-3. Image selection and preview are allowed locally in the browser before any server upload exists.
-4. Future image analysis must use a protected backend/serverless endpoint.
+3. Image selection, preprocessing and OCR run locally in the browser; Step-Flow does not upload the selected image in the current implementation.
+4. A remote Vision service is optional and may use only a protected backend/serverless endpoint.
 5. Error codes detected from OCR must be confirmed if confidence is not high.
 6. Do not request or process screenshots containing passwords, BitLocker recovery keys, product keys, banking information or other confidential data.
+7. Local OCR results are evidence: the user must confirm a detected code before it enters diagnostic routing.
 
 ## Diagnostic decisions
 

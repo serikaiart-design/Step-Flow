@@ -21,6 +21,8 @@
 - Windows version/build, known program, device, driver-vendor, BIOS/UEFI and error-code facts saved in the active session.
 - Saved facts are shown during clarification and remain evidence rather than an automatic diagnosis.
 - BSOD/error-code evidence saved in the active session; recurring-BSOD follow-up connected to the boot FSM.
+- Local in-browser OCR accepts JPEG, PNG and WebP images up to 10 MB, keeps the selected image on the user's device, and asks the user to confirm a detected code before diagnostic routing.
+- OCR regression coverage is part of the required test suite.
 - Problem guides, program recommendations, collapsible reference sections, terms, privacy section, and About section.
 - Private feedback form submits requests through Google Apps Script to a closed Google Sheet; because the browser uses an opaque `no-cors` response, the interface does not claim automatic delivery confirmation.
 - Feedback is intended for the owner and is not published by the website.
@@ -46,6 +48,8 @@
 ## Important remaining owner action
 
 The Google Apps Script deployment should eventually be updated with server-side validation, rate limiting, and spreadsheet-formula sanitization. Website-side controls reduce accidental abuse but cannot protect a public endpoint by themselves.
+
+A remote Vision backend is optional future work, not required for the current local OCR flow. It must not be enabled until a protected endpoint, server-side validation, explicit upload consent and a private API secret are available.
 
 ## Recovery
 

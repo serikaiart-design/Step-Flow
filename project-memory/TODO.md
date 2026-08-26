@@ -14,11 +14,14 @@ Updated: 2026-08-26
 - Persisted extracted facts in the current Assistant session with backward-compatible loading of older sessions.
 - Added a visible saved-facts note during clarification without treating a detected entity as a diagnosis.
 - Added behavioral regression tests for entity extraction and session fact merging.
+- Added local in-browser OCR for screenshots/photos without uploading the image to a Step-Flow server.
+- Added preprocessing, Russian/English recognition, confidence messaging, BSOD and Windows-code detection, fuzzy stop-code recovery and mandatory user confirmation.
+- Added OCR regression tests to the required test suite.
 
 ## Highest priority
 
-- Build a protected Vision/OCR backend for real screenshot/photo analysis.
-- Add confidence handling for OCR and code confirmation.
+- Validate local OCR with a curated set of real, privacy-safe screenshots and monitor mobile performance.
+- Consider a protected remote Vision backend only if local OCR proves insufficient.
 - Extend recurring-BSOD routing toward a protected crash-dump / WinDbg analysis path.
 - Expand the known entity catalogue only from verified user phrases and regression cases.
 - Run regression tests after every assistant change.
@@ -34,7 +37,8 @@ Updated: 2026-08-26
 
 ## Image / Vision
 
-- Protected endpoint; no secret key in GitHub Pages.
+- Current mode: local OCR in the browser; no image upload and no API secret.
+- Optional future mode: protected endpoint; no secret key in GitHub Pages.
 - Validate file type and size server-side.
 - OCR text and error codes.
 - Detect likely active dialog / relevant screen region.
