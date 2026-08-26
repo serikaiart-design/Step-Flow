@@ -18,6 +18,8 @@
 - Responsive desktop, tablet, and mobile layout.
 - Colloquial Russian and common typo normalization for supported Assistant scenarios.
 - Multi-symptom clarification instead of first-match guessing.
+- Windows version/build, known program, device, driver-vendor, BIOS/UEFI and error-code facts saved in the active session.
+- Saved facts are shown during clarification and remain evidence rather than an automatic diagnosis.
 - BSOD/error-code evidence saved in the active session; recurring-BSOD follow-up connected to the boot FSM.
 - Problem guides, program recommendations, collapsible reference sections, terms, privacy section, and About section.
 - Private feedback form submits requests through Google Apps Script to a closed Google Sheet; because the browser uses an opaque `no-cors` response, the interface does not claim automatic delivery confirmation.
@@ -47,4 +49,4 @@ The Google Apps Script deployment should eventually be updated with server-side 
 
 ## Recovery
 
-The latest stable production code checkpoint is commit **a8106b01ea6194a36732048fb93c185c75672709** and the documentation commits that follow it. Git history preserves earlier working versions and allows rollback without deleting the project.
+The latest stable production code checkpoint is commit **60b31ef1d68c09269c7cb444f425787bfc17fb4d** and the documentation commits that follow it. Git history preserves earlier working versions and allows rollback without deleting the project.
