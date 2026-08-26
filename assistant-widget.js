@@ -23,6 +23,25 @@ function goBack(){if(!session.caseId||!session.history||!session.history.length)
 function clear(){session=emptySession();pendingProblem='';try{sessionStorage.removeItem(STORAGE_KEY)}catch(e){}updateBack()}
 function resolved(){msg('<span class="sf-tag">Готово</span><br><b>Проблема исчезла.</b><div class="sf-note">Если всё работает, больше ничего менять не нужно.</div>');clear()}
 function currentHelp(text){msg('<b>Остаёмся в этой же проблеме.</b><br>'+text+'<div class="sf-note">Можно вернуться на предыдущий шаг кнопкой «Назад».</div>')}
+function captureEvidence(kind,data={},originalText=''){
+ const code=String(data.code||'').trim();
+ const label=String(data.name||data.title||'').trim();
+ if(kind==='bsod'){
+  if(session.caseId)pushHistory();
+  if(!session.caseId)session={...emptySession(),caseId:'case_'+Date.now(),family:'boot',state:'bsod_context',originalProblem:originalText||('Синий экран '+code).trim()};
+  else{session.family='boot';session.state='bsod_context';if(!session.originalProblem)session.originalProblem=originalText||('Синий экран '+code).trim()}
+  session.errorCodes=[...new Set([...(session.errorCodes||[]),code].filter(Boolean))];
+  session.observations=[...new Set([...(session.observations||[]),label].filter(Boolean))];
+  pendingProblem='';saveSession();updateBack();render();return true;
+ }
+ if(session.caseId){
+  session.errorCodes=[...new Set([...(session.errorCodes||[]),code].filter(Boolean))];
+  session.observations=[...new Set([...(session.observations||[]),label].filter(Boolean))];
+  saveSession();return true;
+ }
+ return false;
+}
+window.StepFlowAssistant=Object.freeze({captureEvidence});
 function render(){
  updateBack();
  const f=session.family,s=session.state;
@@ -115,6 +134,10 @@ function render(){
   if(s==='bitlocker_gate'){msg('Остановимся здесь. Для продолжения нужен настоящий ключ восстановления BitLocker. Не подбирайте его и не отключайте защиту случайными командами.');buttons([['Ключ есть','startup_repair'],['Ключа нет','boot_escalate']]);return}
   if(s==='startup_failed'){msg('Startup Repair не помог. Дальше не переустанавливаем Windows сразу: проверяем известные проблемы/обновления и доступные recovery-возможности для вашей версии Windows.');buttons([['Продолжить','boot_escalate',true],['Закончить','resolved']]);return}
   if(s==='bsod'){msg('Синий экран — это отдельная ветка. Запишите Stop Code, если он виден. Код — признак, а не готовый диагноз.');buttons([['Код записан','boot_escalate',true],['Кода нет','boot_escalate'],['Не успеваю увидеть','boot_escalate']]);return}
+  if(s==='bsod_context'){const code=(session.errorCodes||[]).slice(-1)[0];msg('<span class="sf-tag">Код сохранён</span><br><b>'+(code?esc(code):'Синий экран')+'</b><br>Этот синий экран уже появлялся раньше?');buttons([['Это первый раз','bsod_once'],['Повторяется','bsod_recurring',true],['Не уверен','bsod_help']]);return}
+  if(s==='bsod_help'){currentHelp('Повторяющимся считаем сбой, который появился снова после перезагрузки или при похожем действии.');buttons([['Первый раз','bsod_once'],['Повторяется','bsod_recurring',true]]);return}
+  if(s==='bsod_once'){msg('Для единичного сбоя зафиксируйте код и обстоятельства. Если Windows работает нормально, пока не меняйте драйверы, BIOS или оборудование наугад.');buttons([['Закончить','resolved',true],['Сбой повторился','bsod_recurring']]);return}
+  if(s==='bsod_recurring'){msg('Повторяемость важнее одного названия кода. Запишите, когда возникает сбой, последние изменения и сохраните crash dump, если Windows его создала. По одному коду нельзя объявлять деталь неисправной.');buttons([['Продолжить','boot_escalate',true],['Закончить','resolved']]);return}
   if(s==='boot_escalate'){msg('Базовый boot-flow завершён. Следующий уровень: Windows build/KB, Known Issue Resolver, Quick Machine Recovery/rollback при наличии и только потом более серьёзное восстановление.');buttons([['Закончить','resolved',true]]);return}
  }
  if(s==='escalate_basic'){msg('На этом этапе нужен следующий уровень диагностики по фактам, а не случайные команды. Базовый безопасный сценарий завершён.');buttons([['Закончить','resolved',true]]);return}
@@ -152,12 +175,14 @@ function handle(v,isUserText=false){const x=norm(v);if(isUserText&&!pendingProbl
  if(v==='clarify_audio'){msg('Проблему со звуком я пока не буду угадывать. Эта ветка будет подключена после P0-сценариев.');return}
  if(v==='clarify_unknown'){msg('Начнём с самого простого: компьютер включается и вы видите рабочий стол Windows?');return}
  if(session.caseId){
-  if(session.family==='slow'&&session.state==='scope'){move(v);return}
-  if(session.family==='slow'&&session.state==='boot'){start('boot','stage');return}
-  if(session.family==='slow'&&['copy_scope','internal','usb','usb_next','usb_device_test','network_copy','network_local','wifi_copy','lan_copy','cloud','upload','both','cloud_uplink','copy_filetype','large_file','small_files','other_drive','same_drive','low_space_copy','backup_first','vendor_storage','whole','whole_after_restart','resource','cpu','cpu_known','cpu_unknown','ram','disk_load','disk_process','storage_evidence','low_space','perf_next','scope_help','copy_help','restart_help','resource_help','space_help','space_help_copy','usb_help','cloud_help'].includes(session.state)){move(v);return}
-  if(session.family==='app_hang'){move(v);return}
-  if(session.family==='network'){move(v);return}
-  if(session.family==='boot'){move(v);return}
+  if(!isUserText){
+   if(session.family==='slow'&&session.state==='scope'){move(v);return}
+   if(session.family==='slow'&&session.state==='boot'){start('boot','stage');return}
+   if(session.family==='slow'&&['copy_scope','internal','usb','usb_next','usb_device_test','network_copy','network_local','wifi_copy','lan_copy','cloud','upload','both','cloud_uplink','copy_filetype','large_file','small_files','other_drive','same_drive','low_space_copy','backup_first','vendor_storage','whole','whole_after_restart','resource','cpu','cpu_known','cpu_unknown','ram','disk_load','disk_process','storage_evidence','low_space','perf_next','scope_help','copy_help','restart_help','resource_help','space_help','space_help_copy','usb_help','cloud_help'].includes(session.state)){move(v);return}
+   if(session.family==='app_hang'){move(v);return}
+   if(session.family==='network'){move(v);return}
+   if(session.family==='boot'){move(v);return}
+  }
   if(/не помог|не получилось|так же|все равно|не понимаю|не знаю/.test(x)){currentHelp('Я не сбрасываю диагностику. Опишите результат последнего шага чуть подробнее.');return}
  }
  const detected=detectTextIntents(x);if(detected.length>1){clarifyDetected(detected);return}
