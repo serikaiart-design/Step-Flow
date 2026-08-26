@@ -17,12 +17,12 @@ If the original ChatGPT conversation is unavailable, read these files first:
 
 Then inspect current `main` before changing code.
 
-## Stable baseline before memory files
+## Latest stable production baseline
 
-Latest stable production code commit: `a8106b01ea6194a36732048fb93c185c75672709`
-Message: `Load Step Flow legal and privacy content`
+Latest stable production code commit: `60b31ef1d68c09269c7cb444f425787bfc17fb4d`
+Message: `test: cover diagnostic entity extraction`
 
-The project-memory commits follow that baseline and do not intentionally modify production UI logic.
+The project-memory commits that follow document this tested production baseline and do not intentionally modify UI logic.
 
 ## Current product state
 
@@ -46,8 +46,11 @@ Working/implemented:
 - Colloquial-Russian and common-typo normalization for supported scenarios.
 - Multi-symptom clarification before routing.
 - Original-problem, observation and error-code persistence in `sessionStorage`.
+- Structured session facts for Windows version/build, known programs, devices, driver vendors and BIOS/UEFI.
+- Backward-compatible loading of sessions saved before the entity schema existed.
+- Visible saved-facts notes during clarification; recognized entities remain evidence, not diagnoses.
 - BSOD-code recurrence flow connected to the existing boot FSM.
-- Required behavioral NLU regression test.
+- Required behavioral NLU and entity-extraction regression tests.
 - Photo/screenshot selection UI with local preview and privacy warning.
 - Rules/conditions and privacy content adapted toward Kazakhstan operation.
 
@@ -68,17 +71,18 @@ Working/implemented:
 
 ## Verified milestone — 2026-08-26
 
-- GitHub `FSM Safety Check`: success, including real NLU behavior assertions.
-- GitHub Pages build and deployment: success.
-- Production Assistant contains the new routing and BSOD context logic.
+- GitHub `FSM Safety Check`: success, including real NLU and entity-extraction behavior assertions.
+- GitHub Pages build and deployment: success for commit `60b31ef1d68c09269c7cb444f425787bfc17fb4d`.
+- Production Assistant contains the routing, BSOD context and structured entity logic.
+- Public `assistant-widget.js` returns HTTP 200 and contains the deployed entity extractor.
 - No existing troubleshooting instruction text or static HTML/CSS/JS architecture was replaced.
 
 ## Next major work
 
-1. Extend entity extraction for Windows version, app, device, driver and BIOS/UEFI.
-2. Implement protected Vision/OCR backend.
-3. Connect image analysis to structured facts and existing scenarios.
-4. Add protected crash-dump/WinDbg path for recurring BSOD cases.
+1. Implement a protected Vision/OCR backend; do not place credentials in the GitHub Pages frontend.
+2. Connect image analysis to structured facts and existing scenarios with confidence confirmation.
+3. Add a protected crash-dump/WinDbg path for recurring BSOD cases.
+4. Expand entity recognition only from verified phrases and regression cases.
 5. Run regression tests after each major change.
 
 ## Safety / privacy constraints
