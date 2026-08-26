@@ -6,6 +6,36 @@
   original.onload=()=>{
     const style=document.createElement('style');
     style.textContent=`
+      /* Subtle card/icon polish — keep the existing Step-Flow design */
+      .problem{
+        border-color:color-mix(in srgb,var(--accent) 22%,#dfe3ea)!important;
+        box-shadow:0 10px 28px rgba(44,53,90,.085)!important;
+      }
+      .problem:hover{
+        transform:translateY(-3px)!important;
+        box-shadow:0 16px 36px rgba(44,53,90,.14)!important;
+      }
+      .problem .picon{
+        width:50px!important;
+        height:50px!important;
+        border-radius:15px!important;
+        font-size:24px!important;
+        box-shadow:0 7px 16px color-mix(in srgb,var(--accent) 24%,transparent),inset 0 1px 0 rgba(255,255,255,.25)!important;
+      }
+      .benefit i{
+        box-shadow:0 4px 10px color-mix(in srgb,var(--bc) 14%,transparent)!important;
+        border:1px solid color-mix(in srgb,var(--bc) 14%,transparent)!important;
+      }
+      .program{
+        border-color:rgba(38,48,82,.13)!important;
+        box-shadow:0 9px 26px rgba(40,49,84,.075)!important;
+      }
+      .program:hover{box-shadow:0 15px 32px rgba(40,49,84,.115)!important}
+      .iconbox{
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 5px 14px rgba(40,49,84,.055)!important;
+        border-color:rgba(35,42,70,.07)!important;
+      }
+
       .sf-help-btn{
         width:68px!important;
         height:68px!important;
@@ -35,6 +65,7 @@
         box-shadow:0 14px 34px rgba(0,196,132,.38),0 0 0 6px rgba(20,210,145,.12)!important;
       }
       @media(max-width:650px){
+        .problem .picon{width:48px!important;height:48px!important;font-size:23px!important}
         .sf-help-btn{width:64px!important;height:64px!important;min-width:64px!important;right:3px!important;bottom:32px!important}
         .sf-help-btn::after{width:32px!important;height:32px!important}
       }
