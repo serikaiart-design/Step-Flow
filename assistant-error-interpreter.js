@@ -26,10 +26,12 @@ function boot(){
   if(hit.kind==='bsod'){
    const x=hit.data;
    add(`<span class="sf-tag">BSOD / синий экран</span><br><b>${esc(x.name)} · ${esc(x.code)}</b><br>${esc(x.summary)}<div class="sf-note"><b>Первый безопасный шаг:</b> ${esc(x.first)}<br>Код BSOD — отправная точка, а не окончательный диагноз. Если код был считан с фото, подтвердите его символ в символ.</div>`);
+   if(window.StepFlowAssistant&&typeof window.StepFlowAssistant.captureEvidence==='function')window.StepFlowAssistant.captureEvidence('bsod',x,text);
    return;
   }
   const x=hit.data;
   add(`<span class="sf-tag">Перевод ошибки</span><br><b>${esc(x.code)} — ${esc(x.title)}</b><br>${esc(x.summary)}<div class="sf-note"><b>Что сделать сначала:</b> ${esc(x.first)}<br>Если напишете, где именно появилась ошибка, Помощник сможет сузить причину.</div>`);
+  if(window.StepFlowAssistant&&typeof window.StepFlowAssistant.captureEvidence==='function')window.StepFlowAssistant.captureEvidence('windows',x,text);
  },true);
  return true;
 }
