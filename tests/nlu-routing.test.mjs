@@ -18,7 +18,7 @@ assert.ok(normLine, 'norm function must be extractable');
 const normExpression = normLine.slice('const norm='.length, -1);
 const norm = Function(`return (${normExpression})`)();
 
-const detectMatch = source.match(/function detectTextIntents\\(x\\)\\{[\\s\\S]*?\\n\\}/);
+const detectMatch = source.match(/function detectTextIntents\(x\)\{[\s\S]*?\n\}/);
 assert.ok(detectMatch, 'intent detector must be extractable');
 const detectTextIntents = Function(`${detectMatch[0]}; return detectTextIntents`)();
 
