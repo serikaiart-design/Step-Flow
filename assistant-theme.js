@@ -20,7 +20,7 @@
         border:none!important;
         box-shadow:0 10px 28px rgba(0,196,132,.30),0 0 0 5px rgba(20,210,145,.10)!important;
         right:4px!important;
-        bottom:38px!important;
+        bottom:52px!important;
       }
       .sf-help-btn::after{
         content:''!important;
@@ -35,7 +35,7 @@
         box-shadow:0 14px 34px rgba(0,196,132,.38),0 0 0 6px rgba(20,210,145,.12)!important;
       }
       @media(max-width:650px){
-        .sf-help-btn{width:64px!important;height:64px!important;min-width:64px!important;right:3px!important;bottom:24px!important}
+        .sf-help-btn{width:64px!important;height:64px!important;min-width:64px!important;right:3px!important;bottom:38px!important}
         .sf-help-btn::after{width:32px!important;height:32px!important}
       }
     `;
