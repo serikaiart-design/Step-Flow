@@ -13,4 +13,20 @@ assert.match(source, /синий экран\|bsod\|stop code\|стоп код/);
 assert.match(source, /originalProblem:pendingProblem\|\|null/);
 assert.match(source, /handle\(q,true\)/);
 
+const normMatch = source.match(/const norm=(v=>[^;]+);/);
+assert.ok(normMatch, 'norm function must be extractable');
+const norm = Function(`return (${normMatch[1]})`)();
+
+const detectMatch = source.match(/function detectTextIntents\\(x\\)\\{[\\s\\S]*?\\n\\}/);
+assert.ok(detectMatch, 'intent detector must be extractable');
+const detectTextIntents = Function(`${detectMatch[0]}; return detectTextIntents`)();
+
+assert.equal(norm('Винда тупит!'), 'windows тупит');
+assert.equal(norm('Инет отвалился.'), 'интернет отвалился');
+assert.equal(norm('Прога зависла'), 'программа зависла');
+assert.deepEqual(detectTextIntents(norm('Комп тормозит и инет отвалился')), ['slow','network']);
+assert.deepEqual(detectTextIntents(norm('Прога зависла')), ['app']);
+assert.deepEqual(detectTextIntents(norm('Синий экран')), ['boot']);
+assert.deepEqual(detectTextIntents(norm('Сайты не открываются')), ['network']);
+
 console.log('PASS: colloquial Russian, multi-symptom clarification, and original-problem capture');
