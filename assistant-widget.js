@@ -2,24 +2,25 @@
 const css=`.sf-help-btn{position:fixed;right:22px;bottom:22px;z-index:9998;border:0;border-radius:999px;padding:14px 18px;background:linear-gradient(135deg,#7c3aed,#8d2df0);color:#fff;font:800 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;box-shadow:0 12px 30px rgba(73,44,145,.28);cursor:pointer}.sf-help-panel{position:fixed;right:22px;bottom:82px;z-index:9999;width:min(430px,calc(100vw - 28px));max-height:min(680px,calc(100vh - 110px));display:none;flex-direction:column;background:#fff;border:1px solid rgba(40,49,84,.10);border-radius:24px;box-shadow:0 24px 70px rgba(35,30,78,.22);overflow:hidden;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#121a31}.sf-help-panel.open{display:flex}.sf-help-head{padding:13px 16px;background:linear-gradient(135deg,#f3edff,#fff3e9);border-bottom:1px solid rgba(40,49,84,.08)}.sf-help-headrow{display:flex;align-items:center;gap:10px}.sf-help-title{font-weight:850;font-size:17px;flex:1}.sf-help-sub{margin-top:3px;color:#687289;font-size:12px}.sf-back{display:none;border:0;background:rgba(255,255,255,.72);color:#6234c3;border-radius:10px;padding:7px 9px;font:800 12px/1 inherit;cursor:pointer}.sf-back.show{display:inline-block}.sf-help-chat{padding:14px;display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:285px}.sf-msg{max-width:92%;padding:10px 12px;border-radius:15px}.sf-bot{align-self:flex-start;background:#f3f0ff}.sf-user{align-self:flex-end;background:#7c3aed;color:#fff}.sf-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.sf-actions button{border:0;border-radius:10px;padding:8px 10px;font:800 12px/1.2 inherit;cursor:pointer}.sf-primary{background:#7c3aed!important;color:#fff!important}.sf-secondary{background:#fff;color:#6234c3;border:1px solid #ddd1f6!important}.sf-help-form{display:flex;gap:8px;padding:12px;border-top:1px solid #eee;background:#fbfbfd}.sf-help-form input{flex:1;min-width:0;border:1px solid #dfe2ea;border-radius:13px;padding:11px 12px;font:inherit;outline:none}.sf-help-form button{border:0;border-radius:13px;padding:0 14px;background:#7c3aed;color:#fff;font-weight:850}.sf-help-panel :focus-visible,.sf-help-btn:focus-visible{outline:3px solid #6d35e5;outline-offset:3px}.sf-close{border:0;background:transparent;font-size:19px;cursor:pointer;color:#6c7382}.sf-tag{display:inline-block;margin-bottom:6px;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.4px;color:#6b3bd0}.sf-note{margin-top:7px;font-size:12px;color:#667085}@media(max-width:520px){.sf-help-btn{right:14px;bottom:14px}.sf-help-panel{right:14px;bottom:72px}.sf-help-form{display:grid}.sf-help-form button{padding:11px}.sf-back{padding:8px 10px}}`;
 const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);
 const STORAGE_KEY='sfAssistantSessionV1',SESSION_TTL=6*60*60*1000;
-const emptySession=()=>({caseId:null,family:null,state:null,attempted:[],history:[],savedAt:Date.now()});
-function loadSession(){try{const value=JSON.parse(sessionStorage.getItem(STORAGE_KEY)||'null');if(!value||!value.caseId||Date.now()-Number(value.savedAt||0)>SESSION_TTL){sessionStorage.removeItem(STORAGE_KEY);return emptySession()}return {...emptySession(),...value,history:Array.isArray(value.history)?value.history:[],attempted:Array.isArray(value.attempted)?value.attempted:[]}}catch(e){return emptySession()}}
+const emptySession=()=>({caseId:null,family:null,state:null,originalProblem:null,attempted:[],history:[],observations:[],errorCodes:[],savedAt:Date.now()});
+function loadSession(){try{const value=JSON.parse(sessionStorage.getItem(STORAGE_KEY)||'null');if(!value||!value.caseId||Date.now()-Number(value.savedAt||0)>SESSION_TTL){sessionStorage.removeItem(STORAGE_KEY);return emptySession()}return {...emptySession(),...value,history:Array.isArray(value.history)?value.history:[],attempted:Array.isArray(value.attempted)?value.attempted:[],observations:Array.isArray(value.observations)?value.observations:[],errorCodes:Array.isArray(value.errorCodes)?value.errorCodes:[]}}catch(e){return emptySession()}}
 function saveSession(){try{session.savedAt=Date.now();sessionStorage.setItem(STORAGE_KEY,JSON.stringify(session))}catch(e){}}
 let session=loadSession();
+let pendingProblem='';
 const btn=document.createElement('button');btn.type='button';btn.className='sf-help-btn';btn.textContent='Разобраться по шагам';btn.setAttribute('aria-controls','sf-help-panel');btn.setAttribute('aria-expanded','false');
 const panel=document.createElement('section');panel.id='sf-help-panel';panel.className='sf-help-panel';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Помощник Step-Flow');panel.innerHTML='<div class="sf-help-head"><div class="sf-help-headrow"><button class="sf-back" type="button">← Назад</button><div class="sf-help-title">Step-Flow by SK AI Art</div><button class="sf-close" type="button" aria-label="Закрыть помощник">×</button></div><div class="sf-help-sub">Один безопасный шаг за раз</div></div><div class="sf-help-chat" aria-live="polite"><div class="sf-msg sf-bot">Опишите проблему обычными словами. Сначала уточним, что происходит, а затем пойдём по одному шагу.</div></div><form class="sf-help-form"><input autocomplete="off" aria-label="Опишите проблему" placeholder="Что случилось?"><button>Дальше</button></form>';
 document.body.append(btn,panel);
 const chat=panel.querySelector('.sf-help-chat'),form=panel.querySelector('form'),input=form.querySelector('input'),backBtn=panel.querySelector('.sf-back');
-const norm=v=>String(v||'').toLowerCase().replace(/ё/g,'е').trim();
+const norm=v=>String(v||'').toLowerCase().replace(/ё/g,'е').replace(/[.,!?;:()\[\]{}"']/g,' ').replace(/\s+/g,' ').replace(/(^|\s)(?:винда|виндовс|вында)(?=\s|$)/g,'$1windows').replace(/(^|\s)(?:инет|инета|инету|интирнет)(?=\s|$)/g,'$1интернет').replace(/(^|\s)(?:прога|прогу|приложуха)(?=\s|$)/g,'$1программа').trim();
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function msg(html,user=false){const d=document.createElement('div');d.className='sf-msg '+(user?'sf-user':'sf-bot');d.innerHTML=html;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d}
 function buttons(items){const a=document.createElement('div');a.className='sf-actions';items.forEach(([label,value,primary])=>{const b=document.createElement('button');b.type='button';b.className=primary?'sf-primary':'sf-secondary';b.textContent=label;b.onclick=()=>{msg(esc(label),true);handle(value)};a.appendChild(b)});chat.lastElementChild.appendChild(a)}
 function updateBack(){backBtn.classList.toggle('show',!!(session.caseId&&session.history&&session.history.length))}
 function pushHistory(){if(session.caseId&&session.family&&session.state){session.history=session.history||[];session.history.push({family:session.family,state:session.state});saveSession()}}
-function start(family,state){if(session.caseId){pushHistory();session.family=family;session.state=state}else{session={caseId:'case_'+Date.now(),family,state,attempted:[],history:[],savedAt:Date.now()}};saveSession();render()}
+function start(family,state){if(session.caseId){pushHistory();session.family=family;session.state=state}else{session={caseId:'case_'+Date.now(),family,state,originalProblem:pendingProblem||null,attempted:[],history:[],observations:[],errorCodes:[],savedAt:Date.now()}}pendingProblem='';saveSession();render()}
 function move(state){if(session.state){pushHistory();session.attempted.push(session.family+':'+session.state)}session.state=state;saveSession();render()}
 function goBack(){if(!session.caseId||!session.history||!session.history.length)return;const prev=session.history.pop();session.family=prev.family;session.state=prev.state;saveSession();msg('← Назад',true);render()}
-function clear(){session=emptySession();try{sessionStorage.removeItem(STORAGE_KEY)}catch(e){}updateBack()}
+function clear(){session=emptySession();pendingProblem='';try{sessionStorage.removeItem(STORAGE_KEY)}catch(e){}updateBack()}
 function resolved(){msg('<span class="sf-tag">Готово</span><br><b>Проблема исчезла.</b><div class="sf-note">Если всё работает, больше ничего менять не нужно.</div>');clear()}
 function currentHelp(text){msg('<b>Остаёмся в этой же проблеме.</b><br>'+text+'<div class="sf-note">Можно вернуться на предыдущий шаг кнопкой «Назад».</div>')}
 function render(){
@@ -119,8 +120,27 @@ function render(){
  if(s==='escalate_basic'){msg('На этом этапе нужен следующий уровень диагностики по фактам, а не случайные команды. Базовый безопасный сценарий завершён.');buttons([['Закончить','resolved',true]]);return}
  msg('<b>Я сохранил текущую проблему, но для этого состояния ещё нет безопасного следующего шага.</b><div class="sf-note">Случай не сброшен. Можно вернуться назад или описать, что вы видите.</div>');
 }
+const INTENT_ACTIONS={
+ slow:['Компьютер работает медленно','start_slow'],
+ app:['Зависла программа','start_app'],
+ network:['Нет интернета','start_network'],
+ boot:['Windows не загружается / синий экран','start_boot']
+};
+function detectTextIntents(x){
+ const hits=[];
+ const app=/программ.*завис|приложен.*завис|окно.*завис|программ.*висит|не закрыва|не отвечает/.test(x);
+ if(app)hits.push('app');
+ if(!app&&/копир.*медлен|медлен.*копир|медлен|тормоз|лага|подвиса|тупит|комп.*висит|ноут.*висит|долго.*дума/.test(x))hits.push('slow');
+ if(/нет интернета|интернет.*не работа|интернет.*отвал|отвал.*интернет|wi.?fi|вай.?фай|пропал.*сеть|сеть.*пропал|сайты.*не открыва/.test(x))hits.push('network');
+ if(/windows.*не загружа|не грузится windows|windows.*не запуска|boot error|no boot|ошибка.*загруз|черн.*экран|синий экран|bsod|stop code|стоп код/.test(x))hits.push('boot');
+ return [...new Set(hits)];
+}
+function clarifyDetected(intents){
+ msg('<b>Вы описали несколько симптомов.</b><br>Что сейчас мешает больше всего?');
+ buttons(intents.map((id,index)=>[INTENT_ACTIONS[id][0],INTENT_ACTIONS[id][1],index===0]));
+}
 function clarify(){msg('<b>Нужно одно уточнение.</b><br>Что именно происходит?');buttons([['Компьютер не включается','clarify_power'],['Windows не загружается','start_boot'],['Работает медленно','start_slow'],['Зависает программа','start_app'],['Нет интернета','start_network'],['Нет звука','clarify_audio'],['Не знаю — помоги определить','clarify_unknown']])}
-function handle(v){const x=norm(v);
+function handle(v,isUserText=false){const x=norm(v);if(isUserText&&!pendingProblem)pendingProblem=String(v||'').trim();
  if(/дым|запах.{0,8}гар|искр|жидкост/.test(x)){msg('<b>Остановите диагностику.</b><br>Выключите компьютер и отключите питание, если это безопасно.');clear();return}
  if(v==='resolved'){resolved();return}
  if(v==='start_slow'||v==='slow'){start('slow','scope');return}
@@ -140,12 +160,14 @@ function handle(v){const x=norm(v);
   if(session.family==='boot'){move(v);return}
   if(/не помог|не получилось|так же|все равно|не понимаю|не знаю/.test(x)){currentHelp('Я не сбрасываю диагностику. Опишите результат последнего шага чуть подробнее.');return}
  }
+ const detected=detectTextIntents(x);if(detected.length>1){clarifyDetected(detected);return}
  if(/комп.*не работ|ничего не работ|все не работ/.test(x)){clarify();return}
  if(/копир.*медлен|медлен.*копир/.test(x)){start('slow','copy_scope');return}
- if(/медлен|тормоз|лага|подвиса/.test(x)){start('slow','scope');return}
- if(/программ.*завис|приложен.*завис|не закрыва|не отвечает/.test(x)){start('app_hang','ask');return}
- if(/нет интернета|wi.?fi|вай.?фай|пропал.*сеть|сеть.*пропал/.test(x)){start('network','scope');return}
- if(/windows.*не загружа|не грузится windows|boot error|no boot/.test(x)){start('boot','stage');return}
+ if(/медлен|тормоз|лага|подвиса|тупит|комп.*висит|ноут.*висит|долго.*дума/.test(x)){start('slow','scope');return}
+ if(/программ.*завис|приложен.*завис|окно.*завис|программ.*висит|не закрыва|не отвечает/.test(x)){start('app_hang','ask');return}
+ if(/нет интернета|интернет.*не работа|интернет.*отвал|отвал.*интернет|wi.?fi|вай.?фай|пропал.*сеть|сеть.*пропал|сайты.*не открыва/.test(x)){start('network','scope');return}
+ if(/синий экран|bsod|stop code|стоп код/.test(x)){start('boot','bsod');return}
+ if(/windows.*не загружа|не грузится windows|windows.*не запуска|boot error|no boot|ошибка.*загруз|черн.*экран/.test(x)){start('boot','stage');return}
  clarify();
 }
 backBtn.onclick=goBack;
@@ -153,6 +175,6 @@ function setOpen(open){panel.classList.toggle('open',open);btn.setAttribute('ari
 btn.onclick=()=>setOpen(!panel.classList.contains('open'));
 panel.querySelector('.sf-close').onclick=()=>setOpen(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open'))setOpen(false)});
-form.onsubmit=e=>{e.preventDefault();const q=input.value.trim();if(!q)return;msg(esc(q),true);input.value='';handle(q)};
+form.onsubmit=e=>{e.preventDefault();const q=input.value.trim();if(!q)return;msg(esc(q),true);input.value='';handle(q,true)};
 if(session.caseId&&session.family&&session.state)render();
 })();
