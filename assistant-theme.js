@@ -35,6 +35,7 @@
         box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 5px 14px rgba(40,49,84,.055)!important;
         border-color:rgba(35,42,70,.07)!important;
       }
+      .footer .copy,.footer .copy a{color:#111827!important}
 
       .sf-help-btn{
         width:68px!important;
